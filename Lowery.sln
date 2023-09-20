@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lowery", "Lowery\Lowery.csproj", "{8CC4882E-56D4-4631-B5FF-57922296DEC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoweryDemo", "LoweryDemo\LoweryDemo.csproj", "{C30A5060-D761-425B-91C8-7BB82FB395B5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8CC4882E-56D4-4631-B5FF-57922296DEC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CC4882E-56D4-4631-B5FF-57922296DEC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CC4882E-56D4-4631-B5FF-57922296DEC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CC4882E-56D4-4631-B5FF-57922296DEC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C30A5060-D761-425B-91C8-7BB82FB395B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C30A5060-D761-425B-91C8-7BB82FB395B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C30A5060-D761-425B-91C8-7BB82FB395B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C30A5060-D761-425B-91C8-7BB82FB395B5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {19F74990-F936-4268-B5C0-58CCC0065036}
+	EndGlobalSection
+EndGlobal

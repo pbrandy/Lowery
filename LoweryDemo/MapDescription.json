@@ -1,0 +1,57 @@
+{
+  "DataSources": [
+    {
+      "Name": "MainGDB",
+      "Type": "FGDB",
+      "Path": "C:\\Users\\kyled\\Documents\\ArcGIS\\Projects\\LoweryTest\\LoweryTest.gdb"
+    }
+  ],
+  "GroupLayers": [
+    {
+      "Name": "Main",
+      "Children ": [
+        {
+          "Name": "Resources",
+          "Type": "GroupLayer"
+        }
+      ]
+    },
+    {
+      "Name": "Resources",
+      "Children": [
+        {
+          "Name": "Resources",
+          "Type": "FeatureLayer"
+        }
+      ]
+    }
+  ],
+  "FeatureLayers": [
+    {
+      "Name": "Resource Feature",
+      "DataSource": "MainGDB",
+      "Path": "ResourceFeatures",
+      "MandatoryFields": [],
+      "Style": "",
+      "Registry": "Main"
+    }
+  ],
+  "Tables": [
+    {
+      "Name": "Resources",
+      "DataSource": "MainGDB",
+      "Path": "Resources",
+      "MandatoryFields": [],
+      "Style": "",
+      "Registry": "Main"
+    },
+    {
+      "Name": "ResourceIdentifier",
+      "DataSource": "MainGDB",
+      "Path": "ResourceIdentifier",
+      "MandatoryFields": [],
+      "Style": "",
+      "Registry": "Main"
+    }
+  ]
+}
