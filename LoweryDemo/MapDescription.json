@@ -7,23 +7,14 @@
     }
   ],
   "GroupLayers": [
-    {
-      "Name": "Main",
-      "Children ": [
-        {
-          "Name": "Resources",
-          "Type": "GroupLayer"
-        }
-      ]
-    },
+    { "Name": "Main" },
     {
       "Name": "Resources",
-      "Children": [
-        {
-          "Name": "Resources",
-          "Type": "FeatureLayer"
-        }
-      ]
+      "Parent": "Main"
+    },
+    {
+      "Name": "Reports",
+      "Parent": "Main"
     }
   ],
   "FeatureLayers": [
@@ -31,6 +22,7 @@
       "Name": "Resource Feature",
       "DataSource": "MainGDB",
       "Path": "ResourceFeatures",
+      "Parent": "Resources",
       "MandatoryFields": [],
       "Style": "",
       "Registry": "Main"

@@ -60,9 +60,17 @@ namespace Lowery
                 return null;
 
             if (parentName is null)
-                return Map.GetLayersAsFlattenedList().OfType<FeatureLayer>().Where(l => l.Name == name).FirstOrDefault();
+                return Map.GetLayersAsFlattenedList().OfType<FeatureLayer>().FirstOrDefault(l => l.Name == name);
             else
-                return Map.GetLayersAsFlattenedList().OfType<FeatureLayer>().Where(l => l.Name == name && ((Layer)l.Parent).Name == parentName).FirstOrDefault();
+                return Map.GetLayersAsFlattenedList().OfType<FeatureLayer>().FirstOrDefault(l => l.Name == name && ((Layer)l.Parent).Name == parentName);
+        }
+
+        public GroupLayer? GroupLayer(string name)
+        {
+            if (Map is null)
+                return null;
+
+            return Map.GetLayersAsFlattenedList().OfType<GroupLayer>().FirstOrDefault(g => g.Name == name);
         }
 
         public Layer? URILayer(string uri, string? parentName = null)
@@ -101,8 +109,15 @@ namespace Lowery
                 for (int i = 0; i < list.Count; i++)
                 {
                     JsonNode? groupLayer = list[i];
-                    if (groupLayer[""])
-                    var gLayer = LayerFactory.Instance.CreateGroupLayer();
+                    string? parentName = (string?)groupLayer?["Parent"];
+                    if (parentName == null)
+                        LayerFactory.Instance.CreateGroupLayer(Map, 0, (string)groupLayer["Name"]);
+                    else
+                    {
+                        GroupLayer? parent = GroupLayer(parentName);
+                        if (parent != null)
+                            LayerFactory.Instance.CreateGroupLayer(parent, 0, (string)groupLayer["Name"]);
+                    }
                 }
                 // Feature Layers
                 // Tables 

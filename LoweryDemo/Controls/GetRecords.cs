@@ -15,6 +15,7 @@ using Lowery;
 using LoweryDemo.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,7 +29,9 @@ namespace LoweryDemo.Controls
             IEnumerable<Resource> resources = await Module1.Current.DB.Table("Resources").Get<Resource>();
             foreach(Resource resource in resources)
             {
-                await Module1.Current.DB.Relation("Resources_ResourceIdentifier").GetRelated<Resource, ResourceIdentifier>(resource);
+                string jsonData = File.ReadAllText("MapDescription.json");
+                await Module1.Current.LoweryMap.BuildMapFromJSON(jsonData);
+                //await Module1.Current.DB.Relation("Resources_ResourceIdentifier").GetRelated<Resource, ResourceIdentifier>(resource);
             }
         }
 
