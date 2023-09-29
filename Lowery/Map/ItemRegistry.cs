@@ -12,7 +12,7 @@ namespace Lowery
     public class ItemRegistry
     {
         public LoweryMap Parent { get; set; }
-        public Dictionary<string, RegisteredItem> Items { get; private set; } = new Dictionary<string, RegisteredItem>();
+        public Dictionary<string, LoweryFeatureLayer> Items { get; private set; } = new Dictionary<string, LoweryFeatureLayer>();
         public bool IsValid { get; set; }
         public bool ValidityRequiresSameVersion { get; set; }
 
@@ -39,7 +39,7 @@ namespace Lowery
             return valid;
         }
 
-        public RegisteredItem Register(string name, Type type, Uri uri)
+        public LoweryFeatureLayer Register(string name, Type type, Uri uri)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name), "Registered layer name cannot be null, empty, or white space.");
@@ -48,12 +48,12 @@ namespace Lowery
                 throw new InvalidOperationException($"Could not register layer with name '{name}'. An item with that key had " +
                     $"already been registered in this registry");
 
-            var newItem = new RegisteredItem(name, type, uri);
+            var newItem = new LoweryFeatureLayer(name, uri);
             Items.Add(name, newItem);
             return newItem;
         }
 
-        public RegisteredItem Register(string name, Type type, LayerCreationParams layerCreationParams)
+        public LoweryFeatureLayer Register(string name, Type type, LayerCreationParams layerCreationParams)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name), "Registered layer name cannot be null, empty, or white space.");
@@ -62,12 +62,12 @@ namespace Lowery
                 throw new InvalidOperationException($"Could not register layer with name '{name}'. An item with that key had " +
                     $"already been registered in this registry");
 
-            var newItem = new RegisteredItem(name, type, layerCreationParams);
+            var newItem = new LoweryFeatureLayer(name, layerCreationParams);
             Items.Add(name, newItem);
             return newItem;
         }
 
-        public RegisteredItem Register(string name, MapMember mapMember)
+        public LoweryFeatureLayer Register(string name, MapMember mapMember)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name), "Registered layer name cannot be null, empty, or white space.");
@@ -76,7 +76,7 @@ namespace Lowery
                 throw new InvalidOperationException($"Could not register layer with name '{name}'. An item with that key had " +
                     $"already been registered in this registry");
 
-            var newItem = new RegisteredItem(name, mapMember);
+            var newItem = new LoweryFeatureLayer(name, mapMember);
             Items.Add(name, newItem);
             return newItem;
         }

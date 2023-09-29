@@ -5,40 +5,57 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace Lowery
 {
-    public class RegisteredItem
+    public class LoweryFeatureLayer : ILoweryItem
     {
         public string Name { get; set; }
-        public Type Type { get; set; }
+        public FeatureLayer FeatureLayer { get; private set; }
         public Uri Uri { get; set; }
-        public LayerCreationParams? LayerParameters { get; set; }
+		public string? Parent { get; set; }
+		public ItemRegistry? Registry { get; set; }
+		public LayerCreationParams? LayerParameters { get; set; }
         public IDisplayTable? DisplayTable { get; set; }
         public Dictionary<string, FieldType> MandatoryFields { get; private set; } = new Dictionary<string, FieldType>();
 
-        public RegisteredItem(string name, Type type, Uri uri)
+        public LoweryFeatureLayer(string name, Uri uri)
         {
             Name = name;
-            Type = type;
             Uri = uri;
         }
 
-        public RegisteredItem(string name, Type type, LayerCreationParams layerParameters)
+        public LoweryFeatureLayer(string name, LayerCreationParams layerParameters)
         {
             Name = name;
-            Type = type;
             Uri = layerParameters.Uri;
             LayerParameters = layerParameters;
         }
 
-        public RegisteredItem(string name, MapMember mapMember)
+        public LoweryFeatureLayer(string name, MapMember mapMember)
         {
             Name = name;
-            Type = mapMember.GetType();
             DisplayTable = mapMember as IDisplayTable;
             Uri = new Uri(mapMember.URI);
+        }
+
+        internal LoweryFeatureLayer(JsonNode json, DataSource dataSource)
+        {
+            Name = (string?)json["Name"] ?? throw new NullReferenceException();
+            Uri = new Uri(Path.Join(dataSource.Path, 
+                (string?)json["Path"] ?? ""));
+        }
+
+        public async Task<FeatureLayer> CreateAsync(ILayerContainerEdit container, int index = 0)
+        {
+			return await QueuedTask.Run(() =>
+			{
+				FeatureLayer featureLayer = (FeatureLayer)LayerFactory.Instance.CreateLayer(Uri, container, index, Name);
+                FeatureLayer = featureLayer;
+				return featureLayer;
+			});
         }
 
         public async Task<bool> Validate()

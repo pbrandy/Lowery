@@ -34,7 +34,6 @@
       "DataSource": "MainGDB",
       "Path": "Resources",
       "MandatoryFields": [],
-      "Style": "",
       "Registry": "Main"
     },
     {
@@ -42,7 +41,6 @@
       "DataSource": "MainGDB",
       "Path": "ResourceIdentifier",
       "MandatoryFields": [],
-      "Style": "",
       "Registry": "Main"
     }
   ]
