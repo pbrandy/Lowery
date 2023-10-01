@@ -106,43 +106,36 @@ namespace Lowery
 			if (data == null)
 				throw new NullReferenceException();
 
-			await QueuedTask.Run(() =>
+			await QueuedTask.Run(async () =>
 			{
 				// Gather Data Sources
 				Dictionary<string, DataSource> dataSources = new Dictionary<string, DataSource>();
 				JsonArray? dataSourceArray = data["DataSources"]?.AsArray();
 				for (int i = 0; i < dataSourceArray?.Count; i++)
 				{
-					string? name = (string?)dataSourceArray[i]?["Name"];
-					if (string.IsNullOrEmpty(name))
-						throw new ArgumentNullException();
-					dataSources.Add(name, 
-						new DataSource()
-						{
-							Name = name,
-							DataSourceType = Enum.Parse<DataSourceType>((string)dataSourceArray[i]["Type"]),
-							Path = (string?)dataSourceArray[i]?["Path"] ?? ""
-						});
-				}
+                    string? name = (string?)dataSourceArray?["Name"];
+                    if (string.IsNullOrEmpty(name))
+                        throw new ArgumentNullException();
+                    dataSources.Add(name,
+                        new DataSource()
+                        {
+                            Name = name,
+                            DataSourceType = Enum.Parse<DataSourceType>((string)dataSourceArray[i]["Type"]),
+                            Path = (string?)dataSourceArray[i]?["Path"] ?? ""
+                        });
+                }
 
 				// Make Group Layers
 				JsonArray? groupArray = data["GroupLayers"]?.AsArray();
-
-				for (int i = 0; i < groupArray?.Count; i++)
+				Dictionary<string, GroupLayer> groups = new Dictionary<string, GroupLayer>();
+				if (groupArray != null)
 				{
-					JsonNode? groupLayer = groupArray[i];
-					string? parentName = (string?)groupLayer?["Parent"];
-					if (parentName == null)
-						LayerFactory.Instance.CreateGroupLayer(Map, 0, (string)groupLayer["Name"]);
-					else
-					{
-						GroupLayer? parent = GroupLayer(parentName);
-						if (parent != null)
-							LayerFactory.Instance.CreateGroupLayer(parent, 0, (string)groupLayer["Name"]);
-						else
-							throw new LayerNotFoundException();
-					}
-				}
+                    foreach (JsonNode groupNode in groupArray)
+                    {
+						var group = await CreateGroupLayer(groupNode);
+						groups.Add(group.Name, group);
+                    }
+                }
 
 				// Feature Layers
 				JsonArray? layerArray = data["FeatureLayers"]?.AsArray();
@@ -156,11 +149,37 @@ namespace Lowery
 						throw new KeyNotFoundException();
 					LoweryFeatureLayer lfl = new(featureLayer, dataSources[dataSourceName]);
 
-					Registries.
 				}
 
 				// Tables 
 			});
+		}
+
+
+		private GroupLayer CreateGroupLayer(JsonNode node)
+		{
+            string? parentName = (string?)node?["Parent"];
+            if (parentName == null)
+                return LayerFactory.Instance.CreateGroupLayer(Map, 0, (string)node["Name"]);
+            else
+            {
+                GroupLayer? parent = GroupLayer(parentName);
+                if (parent != null)
+                    return LayerFactory.Instance.CreateGroupLayer(parent, 0, (string)node["Name"]);
+                else
+                    throw new LayerNotFoundException();
+            }
+        }
+
+		private LoweryFeatureLayer CreateFeatureLayer(JsonNode node)
+		{
+			string? parentName = (string?)node?["Parent"];
+			LoweryFeatureLayer layer = new LoweryFeatureLayer() {
+				Name = (string?)node?["Name"],
+				Uri = new Uri(Path.Join(
+					
+					)),
+			};
 		}
 	}
 }

@@ -41,11 +41,8 @@ namespace Lowery
             Uri = new Uri(mapMember.URI);
         }
 
-        internal LoweryFeatureLayer(JsonNode json, DataSource dataSource)
+        internal LoweryFeatureLayer()
         {
-            Name = (string?)json["Name"] ?? throw new NullReferenceException();
-            Uri = new Uri(Path.Join(dataSource.Path, 
-                (string?)json["Path"] ?? ""));
         }
 
         public async Task<FeatureLayer> CreateAsync(ILayerContainerEdit container, int index = 0)
