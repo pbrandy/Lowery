@@ -113,73 +113,88 @@ namespace Lowery
 				JsonArray? dataSourceArray = data["DataSources"]?.AsArray();
 				for (int i = 0; i < dataSourceArray?.Count; i++)
 				{
-                    string? name = (string?)dataSourceArray?["Name"];
-                    if (string.IsNullOrEmpty(name))
-                        throw new ArgumentNullException();
-                    dataSources.Add(name,
-                        new DataSource()
-                        {
-                            Name = name,
-                            DataSourceType = Enum.Parse<DataSourceType>((string)dataSourceArray[i]["Type"]),
-                            Path = (string?)dataSourceArray[i]?["Path"] ?? ""
-                        });
-                }
+					string? name = (string?)dataSourceArray?["Name"];
+					if (string.IsNullOrEmpty(name))
+						throw new ArgumentNullException();
+					dataSources.Add(name,
+						new DataSource()
+						{
+							Name = name,
+							DataSourceType = Enum.Parse<DataSourceType>((string)dataSourceArray[i]["Type"]),
+							Path = (string?)dataSourceArray[i]?["Path"] ?? ""
+						});
+				}
 
 				// Make Group Layers
 				JsonArray? groupArray = data["GroupLayers"]?.AsArray();
 				Dictionary<string, GroupLayer> groups = new Dictionary<string, GroupLayer>();
 				if (groupArray != null)
 				{
-                    foreach (JsonNode groupNode in groupArray)
-                    {
-						var group = await CreateGroupLayer(groupNode);
+					foreach (JsonNode groupNode in groupArray)
+					{
+						var group = CreateGroupLayer(groupNode);
 						groups.Add(group.Name, group);
-                    }
-                }
+					}
+				}
 
 				// Feature Layers
 				JsonArray? layerArray = data["FeatureLayers"]?.AsArray();
-				for (int i = 0; i < layerArray?.Count; i++)
+				if (layerArray != null)
 				{
-					JsonNode? featureLayer = layerArray[i];
-					string? dataSourceName = (string?)layerArray[i]?["DataSource"];
-					if (dataSourceName == null || featureLayer == null)
-						throw new ArgumentNullException();
-					if (!dataSources.ContainsKey(dataSourceName))
-						throw new KeyNotFoundException();
-					LoweryFeatureLayer lfl = new(featureLayer, dataSources[dataSourceName]);
-
+					foreach (JsonNode node in layerArray)
+					{
+						string dataSource = (string?)node["DataSource"] ?? "";
+						if (string.IsNullOrEmpty(dataSource) || !dataSources.ContainsKey(dataSource))
+							continue;
+						LoweryFeatureLayer fl = await CreateFeatureLayer(node, dataSources[dataSource]);
+					}
 				}
 
 				// Tables 
+				JsonArray? tableArray = data["Tables"]?.AsArray();
+				if (tableArray != null)
+				{
+					foreach (JsonNode node in tableArray)
+					{
+						string dataSource = (string?)node["DataSource"] ?? "";
+						if (string.IsNullOrEmpty(dataSource) || !dataSources.ContainsKey(dataSource))
+							continue;
+					}
+				}
 			});
 		}
 
 
 		private GroupLayer CreateGroupLayer(JsonNode node)
 		{
-            string? parentName = (string?)node?["Parent"];
-            if (parentName == null)
-                return LayerFactory.Instance.CreateGroupLayer(Map, 0, (string)node["Name"]);
-            else
-            {
-                GroupLayer? parent = GroupLayer(parentName);
-                if (parent != null)
-                    return LayerFactory.Instance.CreateGroupLayer(parent, 0, (string)node["Name"]);
-                else
-                    throw new LayerNotFoundException();
-            }
-        }
+			string? parentName = (string?)node?["Parent"];
+			if (parentName == null)
+				return LayerFactory.Instance.CreateGroupLayer(Map, 0, (string)node["Name"]);
+			else
+			{
+				GroupLayer? parent = GroupLayer(parentName);
+				if (parent != null)
+					return LayerFactory.Instance.CreateGroupLayer(parent, 0, (string)node["Name"]);
+				else
+					throw new LayerNotFoundException();
+			}
+		}
 
-		private LoweryFeatureLayer CreateFeatureLayer(JsonNode node)
+		private async Task<LoweryFeatureLayer> CreateFeatureLayer(JsonNode node, DataSource dataSource)
 		{
 			string? parentName = (string?)node?["Parent"];
+			ILayerContainerEdit parent;
+			if (string.IsNullOrEmpty(parentName) || GroupLayer(parentName) == null)
+				parent = Map;
+			else
+				parent = GroupLayer(parentName);
+
 			LoweryFeatureLayer layer = new LoweryFeatureLayer() {
 				Name = (string?)node?["Name"],
-				Uri = new Uri(Path.Join(
-					
-					)),
+				Uri = new Uri(Path.Join(dataSource.Path, (string?)node?["Path"])),
 			};
+			await layer.CreateAsync(parent);
+			return layer;
 		}
 	}
 }
