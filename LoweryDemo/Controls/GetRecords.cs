@@ -26,13 +26,16 @@ namespace LoweryDemo.Controls
     {
         protected override async void OnClick()
         {
+            string jsonData = File.ReadAllText("MapDescription.json");
+            await Module1.Current.LoweryMap.BuildMapFromJSON(jsonData);
+
+            /*
             IEnumerable<Resource> resources = await Module1.Current.DB.Table("Resources").Get<Resource>();
             foreach(Resource resource in resources)
             {
-                string jsonData = File.ReadAllText("MapDescription.json");
-                await Module1.Current.LoweryMap.BuildMapFromJSON(jsonData);
-                //await Module1.Current.DB.Relation("Resources_ResourceIdentifier").GetRelated<Resource, ResourceIdentifier>(resource);
+                await Module1.Current.DB.Relation("Resources_ResourceIdentifier").GetRelated<Resource, ResourceIdentifier>(resource);
             }
+            */
         }
 
     }
