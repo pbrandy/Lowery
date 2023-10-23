@@ -156,7 +156,7 @@ namespace Lowery
 						throw new KeyNotFoundException();
 					LoweryFeatureLayer lfl = new(featureLayer, dataSources[dataSourceName]);
 
-					Registries.
+
 				}
 
 				// Tables 
