@@ -154,7 +154,10 @@ namespace Lowery
 						throw new ArgumentNullException();
 					if (!dataSources.ContainsKey(dataSourceName))
 						throw new KeyNotFoundException();
-					LoweryFeatureLayer lfl = new(featureLayer, dataSources[dataSourceName]);
+
+					DataSource dataSource = dataSources[dataSourceName];
+					LoweryFeatureLayer lfl = new((string?)featureLayer["Name"] ?? string.Empty, 
+						new Uri(Path.Join(dataSource.Path, (string?)featureLayer["Path"] ?? "")));
 
 
 				}

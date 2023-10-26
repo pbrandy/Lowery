@@ -16,24 +16,24 @@ namespace Lowery
         public static async Task GetRelated<SourceT, RelatedT>(this RelationshipClass relationship, SourceT origin)
             where RelatedT : class, new()
         {
-            Dictionary<string, PropertyInfo[]> propInfo = Common.SortPropertyInfo(typeof(SourceT));
+            Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(SourceT));
 
-            if (propInfo["Related"].Length == 0)
+            if (propInfo["Related"].Count == 0)
                 return;
 
             await QueuedTask.Run(() => {
-                long? primaryKey = propInfo["PrimaryKey"][0].GetValue(origin) as long?;
+                long? primaryKey = propInfo["PrimaryKey"][0].PropertyInfo.GetValue(origin) as long?;
                 if (primaryKey == null)
-                    throw new ArgumentNullException(nameof(primaryKey), $"Caould not locate primary key for object of type {typeof(SourceT).Name}. " +
+                    throw new ArgumentNullException(nameof(primaryKey), $"Could not locate primary key for object of type {typeof(SourceT).Name}. " +
                         $"Please specify a primary key property of the type long using the attribute.");
                 var relatedRows = relationship.GetRowsRelatedToOriginRows(new long[] {(long)primaryKey});
 
-                var relatedProp = propInfo["Related"].FirstOrDefault(p => p.GetCustomAttribute<Related>()?.RelationshipClass == relationship.GetName());
+                var relatedProp = propInfo["Related"].FirstOrDefault(p => p.PropertyInfo.GetCustomAttribute<Related>()?.RelationshipClass == relationship.GetName());
                 if (relatedProp == null)
                     return;
 
-                Dictionary<string, PropertyInfo[]> relatedInfo = Common.SortPropertyInfo(typeof(RelatedT));
-                if (relatedProp.PropertyType == typeof(List<RelatedT>))
+                Dictionary<string, List<ExpandedPropertyInfo>> relatedInfo = Common.SortPropertyInfo(typeof(RelatedT));
+                if (relatedProp.PropertyInfo.PropertyType == typeof(List<RelatedT>))
                 {
                     List<RelatedT> relatedData = new List<RelatedT>();
                     foreach (var relatedRow in relatedRows)
@@ -43,7 +43,7 @@ namespace Lowery
                         foreach (var prop in relatedInfo["StandardProps"].Concat(propInfo["PrimaryKey"]))
                         {
                             var method = typeof(TypeMapStore).GetMethod("GetMapping", 1, Array.Empty<Type>());
-                            var methodInfo = method?.MakeGenericMethod(prop.PropertyType);
+                            var methodInfo = method?.MakeGenericMethod(prop.PropertyInfo.PropertyType);
                             if (methodInfo == null)
                                 continue;
 
@@ -52,14 +52,14 @@ namespace Lowery
                                 continue;
                             MethodInfo? gentype = mapping.GetType().GetMethod("Execute");
 
-                            prop.SetValue(
+                            prop.PropertyInfo.SetValue(
                                 newEntity,
-                                gentype?.Invoke(mapping, new object[] { relatedRow[prop.Name] })
+                                gentype?.Invoke(mapping, new object[] { relatedRow[prop.FieldName] })
                                 );
                         }
                         relatedData.Add(newEntity);
                     }
-                    relatedProp.SetValue(origin, relatedData);
+                    relatedProp.PropertyInfo.SetValue(origin, relatedData);
                 }
                 Common.Dispose(relatedRows);
             });
@@ -68,7 +68,7 @@ namespace Lowery
         public static async Task UpdatedRelated<SourceT, RelatedT>(this RelationshipClass relationship, RelatedT related)
             where RelatedT : class, new()
         {
-            Dictionary<string, PropertyInfo[]> propInfo = Common.SortPropertyInfo(typeof(SourceT));
+            Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(SourceT));
 
             await QueuedTask.Run(() => {
                 var definition = relationship.GetDefinition();

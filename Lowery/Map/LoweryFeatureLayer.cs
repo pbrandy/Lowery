@@ -41,7 +41,7 @@ namespace Lowery
             Uri = new Uri(mapMember.URI);
         }
 
-        internal LoweryFeatureLayer()
+        internal LoweryFeatureLayer(string? v)
         {
         }
 

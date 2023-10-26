@@ -23,7 +23,13 @@
       "DataSource": "MainGDB",
       "Path": "ResourceFeatures",
       "Parent": "Resources",
-      "MandatoryFields": [],
+      "MandatoryFields": [
+        {
+          "Field": "",
+          "Alias": "",
+          "Type": ""
+        }
+      ],
       "Style": "",
       "Registry": "Main"
     }

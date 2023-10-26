@@ -1,4 +1,5 @@
 ﻿using ArcGIS.Core.Data;
+using Lowery.Mappings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,21 +11,36 @@ namespace Lowery.Internal
 {
     internal static class Common
     {
-        internal static Dictionary<string, PropertyInfo[]> SortPropertyInfo(Type t)
+        internal static Dictionary<string, List<ExpandedPropertyInfo>> SortPropertyInfo(Type t)
         {
-            Dictionary<string, PropertyInfo[]> results = new Dictionary<string, PropertyInfo[]>();
-            var properties = t.GetProperties();
+            Dictionary<string, List<ExpandedPropertyInfo>> results = new Dictionary<string, List<ExpandedPropertyInfo>>();
+            var properties = t.GetProperties().Where(p => p.DeclaringType == t);
 
-            var primaries = properties.Where(p => p.GetCustomAttribute<PrimaryKey>() != null).ToArray();
+			List<ExpandedPropertyInfo> primaries = new();
+            foreach ( var p in properties.Where(p => p.GetCustomAttribute<PrimaryKey>() != null))
+            {
+                string? fieldName = p.GetCustomAttribute<FieldName>()?.Name;
+                primaries.Add(new ExpandedPropertyInfo(fieldName ?? p.Name, p) { IsPrimaryKey = true });
+            }
             results.Add("PrimaryKey", primaries);
 
-            var related = properties.Where(p => p.GetCustomAttribute<Related>() != null).ToArray();
-            results.Add("Related", related);
+            List<ExpandedPropertyInfo> related = new();
+			foreach (var p in properties.Where(p => p.GetCustomAttribute<Related>() != null))
+			{
+				string? fieldName = p.GetCustomAttribute<FieldName>()?.Name;
+				primaries.Add(new ExpandedPropertyInfo(fieldName ?? p.Name, p) { IsRelational = true });
+			}
+			results.Add("Related", related);
 
-            var test = properties[3].GetCustomAttribute<PrimaryKey>();
-            var standard = properties.Where(p => p.CustomAttributes.Count() == 0).ToArray();
-
-            results.Add("StandardProps", standard);
+			List<ExpandedPropertyInfo> standard = new();
+			foreach (var p in properties.Where(p => p.GetCustomAttribute<Related>() == null 
+                && p.GetCustomAttribute<PrimaryKey>() == null 
+                && p.GetCustomAttribute<Ignoreable>() == null))
+			{
+				string? fieldName = p.GetCustomAttribute<FieldName>()?.Name;
+                primaries.Add(new ExpandedPropertyInfo(fieldName ?? p.Name, p));
+			}
+			results.Add("StandardProps", standard);
             return results;
         }
 
