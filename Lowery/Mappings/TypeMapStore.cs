@@ -21,13 +21,14 @@ namespace Lowery.Mappings
                 new TypeMapping<float>(typeof(float), (obj) => (float)Convert.ToDecimal(obj)),
                 new TypeMapping<double>(typeof(double), Convert.ToDouble),
                 new TypeMapping<DateTime>(typeof(DateTime), Convert.ToDateTime),
-                new TypeMapping<Guid>(typeof(DateTime), (obj) => Guid.Parse(Convert.ToString(obj) ?? ""))
+                new TypeMapping<DateTime?>(typeof(DateTime?), (value) => { return (DateTime?)Convert.ToDateTime(value); }),
+                new TypeMapping<Guid>(typeof(Guid), (obj) => Guid.Parse(Convert.ToString(obj) ?? ""))
             };
         }
 
         public static TypeMapping<T> GetMapping<T>()
-        {
-            var mapping = (TypeMapping<T>?)TypeMappings.FirstOrDefault(m => m.TargetType == typeof(T));
+		{
+			var mapping = (TypeMapping<T>?)TypeMappings.FirstOrDefault(m => m.TargetType == typeof(T));
             if (mapping == null)
                 throw new KeyNotFoundException($"Type mapping of type '{typeof(T).Name}' not found in registered type maps.");
             return mapping;

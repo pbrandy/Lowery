@@ -106,7 +106,7 @@ namespace Lowery
 			if (data == null)
 				throw new NullReferenceException();
 
-			await QueuedTask.Run(async () =>
+			await QueuedTask.Run(() =>
 			{
 				// Gather Data Sources
 				Dictionary<string, DataSource> dataSources = new Dictionary<string, DataSource>();
@@ -127,8 +127,8 @@ namespace Lowery
 
 				// Make Group Layers
 				JsonArray? groupArray = data["GroupLayers"]?.AsArray();
-				Dictionary<string, GroupLayer> groups = new Dictionary<string, GroupLayer>();
-				if (groupArray != null)
+
+				for (int i = 0; i < groupArray?.Count; i++)
 				{
 					foreach (JsonNode groupNode in groupArray)
 					{

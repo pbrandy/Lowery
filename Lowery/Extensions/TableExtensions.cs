@@ -19,7 +19,7 @@ namespace Lowery
         private static async Task<IEnumerable<T>> Get<T>(this Table table, QueryFilter? queryFilter) where T : class, new()
         {
             List<T> results = new();
-            Dictionary<string, PropertyInfo[]> propInfo = Common.SortPropertyInfo(typeof(T));
+            Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(T));
             
             await QueuedTask.Run(() =>
             {
@@ -32,7 +32,7 @@ namespace Lowery
                     foreach (var prop in propInfo["StandardProps"].Concat(propInfo["PrimaryKey"]))
                     {
                         var method = typeof(TypeMapStore).GetMethod("GetMapping", 1, Array.Empty<Type>());
-                        var methodInfo = method?.MakeGenericMethod(prop.PropertyType);
+                        var methodInfo = method?.MakeGenericMethod(prop.PropertyInfo.PropertyType);
                         if (methodInfo == null)
                             continue;
 
@@ -41,9 +41,9 @@ namespace Lowery
                             continue;
                         MethodInfo? gentype = mapping.GetType().GetMethod("Execute");
 
-                        prop.SetValue(
+                        prop.PropertyInfo.SetValue(
                             newEntity,
-                            gentype?.Invoke(mapping, new object[] { row[prop.Name] })
+                            gentype?.Invoke(mapping, new object[] { row[prop.FieldName] })
                             );
                     }
                     results.Add(newEntity);
