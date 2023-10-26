@@ -106,11 +106,12 @@ namespace Lowery
 			if (data == null)
 				throw new NullReferenceException();
 
-			await QueuedTask.Run(() =>
+			await QueuedTask.Run(async () =>
 			{
 				// Gather Data Sources
 				Dictionary<string, DataSource> dataSources = new Dictionary<string, DataSource>();
 				JsonArray? dataSourceArray = data["DataSources"]?.AsArray();
+				var dslist = dataSourceArray.Deserialize<List<LoweryDataSourceDefinition>>();
 				for (int i = 0; i < dataSourceArray?.Count; i++)
 				{
 					string? name = (string?)dataSourceArray?["Name"];
@@ -127,7 +128,7 @@ namespace Lowery
 
 				// Make Group Layers
 				JsonArray? groupArray = data["GroupLayers"]?.AsArray();
-
+				Dictionary<string, GroupLayer> groups = new();
 				for (int i = 0; i < groupArray?.Count; i++)
 				{
 					foreach (JsonNode groupNode in groupArray)
@@ -189,10 +190,9 @@ namespace Lowery
 			else
 				parent = GroupLayer(parentName);
 
-			LoweryFeatureLayer layer = new LoweryFeatureLayer() {
-				Name = (string?)node?["Name"],
-				Uri = new Uri(Path.Join(dataSource.Path, (string?)node?["Path"])),
-			};
+			LoweryFeatureLayer layer = new LoweryFeatureLayer(
+				(string?)node?["Name"],
+				new Uri(Path.Join(dataSource.Path, (string?)node?["Path"])));
 			await layer.CreateAsync(parent);
 			return layer;
 		}

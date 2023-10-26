@@ -1,4 +1,5 @@
-﻿<ArcGIS defaultAssembly="LoweryDemo.dll" defaultNamespace="LoweryDemo" xmlns="http://schemas.esri.com/DADF/Registry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArcGIS defaultAssembly="LoweryDemo.dll" defaultNamespace="LoweryDemo" xmlns="http://schemas.esri.com/DADF/Registry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
   <AddInInfo id="{29a36005-ded6-45dc-836c-ce521b147627}" version="1.0" desktopVersion="3.1.41833">
     <Name>LoweryDemo</Name>
     <Description>LoweryDemo description</Description>
