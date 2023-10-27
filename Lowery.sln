@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lowery", "Lowery\Lowery.csproj", "{8CC4882E-56D4-4631-B5FF-57922296DEC0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lowery", "Lowery\Lowery.csproj", "{8CC4882E-56D4-4631-B5FF-57922296DEC0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoweryDemo", "LoweryDemo\LoweryDemo.csproj", "{C30A5060-D761-425B-91C8-7BB82FB395B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoweryDemo", "LoweryDemo\LoweryDemo.csproj", "{C30A5060-D761-425B-91C8-7BB82FB395B5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

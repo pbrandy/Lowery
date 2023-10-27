@@ -1,20 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <NoWarn>CA1416</NoWarn>
+	  <TargetFramework>net6.0-windows</TargetFramework>
+	  <UseWPF>true</UseWPF>
+	  <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	  <NoWarn>CA1416</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="MapDescription.json" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Config.daml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="Config.daml" />
     <Content Include="Images\AddInDesktop16.png" />
     <Content Include="Images\AddInDesktop32.png" />
     <Content Include="DarkImages\AddInDesktop16.png" />

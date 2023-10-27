@@ -1,0 +1,18 @@
+﻿Origin Point (Register from JSON on Map Open)
+=======================
+1. Tied to event
+
+
+Origin Point (Register from Code on Map Open)
+=======================
+1. Tied to event
+
+
+Origin Point (Create from JSON)
+=======================
+1. Called Method
+
+Origin Point (Register from Code)
+=======================
+1. Called Method
+

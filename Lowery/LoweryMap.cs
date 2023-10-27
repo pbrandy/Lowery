@@ -111,31 +111,22 @@ namespace Lowery
 				// Gather Data Sources
 				Dictionary<string, DataSource> dataSources = new Dictionary<string, DataSource>();
 				JsonArray? dataSourceArray = data["DataSources"]?.AsArray();
-				var dslist = dataSourceArray.Deserialize<List<LoweryDataSourceDefinition>>();
-				for (int i = 0; i < dataSourceArray?.Count; i++)
+				if (dataSourceArray != null)
 				{
-					string? name = (string?)dataSourceArray?["Name"];
-					if (string.IsNullOrEmpty(name))
-						throw new ArgumentNullException();
-					dataSources.Add(name,
-						new DataSource()
-						{
-							Name = name,
-							DataSourceType = Enum.Parse<DataSourceType>((string)dataSourceArray[i]["Type"]),
-							Path = (string?)dataSourceArray[i]?["Path"] ?? ""
-						});
-				}
+					List<LoweryDataSourceDefinition> dslist = dataSourceArray.Deserialize<List<LoweryDataSourceDefinition>>() ?? new();
+                    foreach (var definition in dslist)
+                    {
+                        dataSources.Add(definition.Name, new DataSource(definition));
+                    }
+                }
 
 				// Make Group Layers
-				JsonArray? groupArray = data["GroupLayers"]?.AsArray();
 				Dictionary<string, GroupLayer> groups = new();
-				for (int i = 0; i < groupArray?.Count; i++)
+                JsonArray? groupArray = data["GroupLayers"]?.AsArray();
+				if (groupArray != null)
 				{
-					foreach (JsonNode groupNode in groupArray)
-					{
-						var group = CreateGroupLayer(groupNode);
-						groups.Add(group.Name, group);
-					}
+					List<LoweryGroupDefinition> groupList = dataSourceArray.Deserialize<List<LoweryGroupDefinition>>() ?? new();
+					groupList.ForEach(definition => { groups.Add(definition.Name, CreateGroupLayer(definition)); });
 				}
 
 				// Feature Layers
@@ -165,20 +156,21 @@ namespace Lowery
 			});
 		}
 
-
-		private GroupLayer CreateGroupLayer(JsonNode node)
+		private GroupLayer CreateGroupLayer(LoweryGroupDefinition definition)
 		{
-			string? parentName = (string?)node?["Parent"];
-			if (parentName == null)
-				return LayerFactory.Instance.CreateGroupLayer(Map, 0, (string)node["Name"]);
-			else
-			{
-				GroupLayer? parent = GroupLayer(parentName);
-				if (parent != null)
-					return LayerFactory.Instance.CreateGroupLayer(parent, 0, (string)node["Name"]);
-				else
-					throw new LayerNotFoundException();
-			}
+			if (definition.Parent == null)
+				return LayerFactory.Instance.CreateGroupLayer(Map, 0, definition.Name);
+
+            GroupLayer? parent = GroupLayer(definition.Parent);
+            if (parent != null)
+                return LayerFactory.Instance.CreateGroupLayer(parent, 0, definition.Name);
+            else
+                throw new LayerNotFoundException();
+		}
+
+		private bool RegisterGroupLayer(LoweryGroupDefinition definition)
+		{
+
 		}
 
 		private async Task<LoweryFeatureLayer> CreateFeatureLayer(JsonNode node, DataSource dataSource)

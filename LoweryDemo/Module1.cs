@@ -42,7 +42,8 @@ namespace LoweryDemo
         #region Overrides
         protected override bool Initialize()
         {
-            DB = new LoweryConnection("C:\\Users\\kyled\\Documents\\ArcGIS\\Projects\\LoweryTest\\LoweryTest.gdb");
+            //DB = new LoweryConnection("C:\\Users\\kyled\\Documents\\ArcGIS\\Projects\\LoweryTest\\LoweryTest.gdb");
+            DB = new LoweryConnection("C:\\Users\\Kyle\\Documents\\ArcGIS\\Projects\\PGE_Test\\PGE_Test.gdb");
             
             return base.Initialize();
         }
