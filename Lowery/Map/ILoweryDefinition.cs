@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Lowery
 {
-	public class LoweryGroupDefinition : ILoweryDefinition
+	public interface ILoweryDefinition
 	{
-		public string Name { get; set; } = string.Empty;
-		public string? Parent { get; set; }
+		string Name { get; }
+		string? Parent { get; }
+
 	}
 }

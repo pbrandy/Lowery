@@ -4,6 +4,7 @@ using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using Lowery.Exceptions;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,13 +16,8 @@ namespace Lowery
 {
 	public class LoweryMap
 	{
-		public Map? Map { get; set; }
+		public Map Map { get; set; }
 		public Dictionary<string, ItemRegistry> Registries { get; set; } = new();
-
-		public LoweryMap()
-		{
-
-		}
 
 		public LoweryMap(Map map)
 		{
@@ -85,11 +81,15 @@ namespace Lowery
 				return Map.GetLayersAsFlattenedList().OfType<FeatureLayer>().Where(l => l.URI == uri && ((Layer)l.Parent).Name == parentName).FirstOrDefault();
 		}
 
-		public ItemRegistry CreateRegistry(string name)
+		public ItemRegistry FindOrCreateRegistry(string name)
 		{
-			ItemRegistry newRegistry = new(this);
-			Registries.Add(name, newRegistry);
-			return newRegistry;
+			bool exists = Registries.TryGetValue(name, out var registry);
+			if (!exists)
+			{
+				registry = new(this);
+				Registries.Add(name, registry);
+			} 
+			return registry;
 		}
 
 		public Table Table(string name)
@@ -98,6 +98,31 @@ namespace Lowery
 			{
 				return Map.FindStandaloneTables(name)[0].GetTable();
 			}).Result;
+		}
+
+		public IEnumerable<MapMember> SearchForItem(ILoweryDefinition definition, Type type, string? Parent = null)
+		{
+			IEnumerable<MapMember> rv = Array.Empty<MapMember>();
+			if (type == typeof(Layer))
+			{
+				List<Layer> layers;
+				if (definition.Parent != null)
+					layers = Map.FindLayers(definition.Name).Where(l => l.GetType() == type && ((MapMember)l.Parent).Name == definition.Parent).ToList();
+				else
+					layers = Map.GetLayersAsFlattenedList().Where(l => l.Name == definition.Name && l.GetType() == type).ToList();
+				return layers;
+			}
+			else if (type == typeof(StandaloneTable))
+			{
+				List<StandaloneTable> tables;
+				if (definition.Parent != null)
+					tables = Map.FindStandaloneTables(definition.Name).Where(t => ((MapMember)t.Parent).Name == definition.Parent).ToList();
+				else
+					tables = Map.FindStandaloneTables(definition.Name).ToList();
+				return tables;
+			}
+			else
+				throw new ArgumentException($"The {type.Name} type is not a valid map member item.");
 		}
 
 		public async Task BuildMapFromJSON(string json)
@@ -170,7 +195,7 @@ namespace Lowery
 
 		private bool RegisterGroupLayer(LoweryGroupDefinition definition)
 		{
-
+			return true;
 		}
 
 		private async Task<LoweryFeatureLayer> CreateFeatureLayer(JsonNode node, DataSource dataSource)

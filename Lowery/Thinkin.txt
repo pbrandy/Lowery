@@ -1,18 +1,19 @@
-﻿Origin Point (Register from JSON on Map Open)
+﻿Origin Point (Create/Register from JSON)
 =======================
-1. Tied to event
+1. Read JSON
+2. Register From Existing
+	- Make Search Map a method that takes Definition, Object Type
+3. Create Object if Not Found
+4. Gather or Create Register
+5. Register Object
 
-
-Origin Point (Register from Code on Map Open)
+Origin Point (Register from JSON)
 =======================
-1. Tied to event
 
-
-Origin Point (Create from JSON)
+Origin Point (Create/Register from Code)
 =======================
-1. Called Method
 
 Origin Point (Register from Code)
 =======================
-1. Called Method
+
 

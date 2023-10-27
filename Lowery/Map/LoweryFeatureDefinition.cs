@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace Lowery
 {
-	internal class LoweryFeatureDefinition
+	internal class LoweryFeatureDefinition : ILoweryDefinition
 	{
-		internal string Name { get; set; } = string.Empty;
-		internal string DataSource { get; set; } = string.Empty;
-		internal string Path { get; set; } = string.Empty;
-		internal string? Parent { get; set; }
-		internal FieldDefinition[]? MandatoryFields { get; set; }
-		internal string? Style { get; set; }
-		internal string? Registry { get; set; }
+		public string Name { get; set; } = string.Empty;
+		public string DataSource { get; set; } = string.Empty;
+		public string Path { get; set; } = string.Empty;
+		public string? Parent { get; set; }
+		public FieldDefinition[]? MandatoryFields { get; set; }
+		public string? Style { get; set; }
+		public string? Registry { get; set; }
 	}
 }

@@ -11,7 +11,7 @@ namespace Lowery
 	{
         public string Name { get; set; } = string.Empty;
 		public DataSourceType DataSourceType { get; set; }
-		public string Path { get; set; } = string.Empty;+
+		public string Path { get; set; } = string.Empty;
 
 		public DataSource()
 		{
