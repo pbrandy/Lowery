@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ArcGIS.Core.Data;
+using ArcGIS.Desktop.Mapping;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,8 +11,10 @@ namespace Lowery
 	public interface ILoweryItem
 	{
 		string Name { get; }
-		public Uri Uri { get; set; }
+		public string Uri { get; set; }
 		public string? Parent { get; set; }
         public ItemRegistry? Registry { get; set; }
-    }
+		public IDisplayTable? DisplayTable { get; set; }
+		public IEnumerable<LoweryFieldDefinition>? MandatoryFields { get; set; }
+	}
 }

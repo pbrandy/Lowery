@@ -51,7 +51,7 @@ namespace LoweryDemo
         private void RegisterMap(MapViewEventArgs args)
         {
             LoweryMap = new LoweryMap(args.MapView.Map);
-            var register = LoweryMap.FindOrCreateRegistry("main");
+            var register = LoweryMap.Registry("main");
         }
 
         /// <summary>

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lowery
 {
-	internal class LoweryTableDefintion : ILoweryDefinition
+	public class LoweryTableDefintion
 	{
 		public string Name { get; set; } = string.Empty;
 		public string DataSource { get; set; } = string.Empty;

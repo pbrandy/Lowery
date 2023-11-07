@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Lowery
 {
-    internal class LoweryConnectionBase
+    internal class LoweryBase
     {
-        public LoweryConnectionBase()
+        public LoweryBase()
         {
 
         }

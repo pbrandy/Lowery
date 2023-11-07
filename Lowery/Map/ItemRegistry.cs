@@ -12,7 +12,7 @@ namespace Lowery
     public class ItemRegistry
     {
         public LoweryMap Parent { get; set; }
-        public Dictionary<string, LoweryFeatureLayer> Items { get; private set; } = new Dictionary<string, LoweryFeatureLayer>();
+        public Dictionary<string, ILoweryItem> Items { get; private set; } = new Dictionary<string, ILoweryItem>();
         public bool IsValid { get; set; }
         public bool ValidityRequiresSameVersion { get; set; }
 
@@ -33,53 +33,39 @@ namespace Lowery
                 var matchedLayer = layers.FirstOrDefault(l => l.URI == item.Value.Uri.ToString());
                 if (matchedLayer is null)
                     valid = false;
-                else
-                    item.Value.DisplayTable = (IDisplayTable)matchedLayer;
             }
             return valid;
         }
 
-        public LoweryFeatureLayer Register(string name, Type type, Uri uri)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentNullException(nameof(name), "Registered layer name cannot be null, empty, or white space.");
+        public LoweryStandaloneTable RegisterTable(string name, LoweryTableDefintion definition, StandaloneTable standaloneTable)
+		{
+			if (string.IsNullOrWhiteSpace(name))
+				throw new ArgumentNullException(nameof(name), "Registered layer name cannot be null, empty, or white space.");
 
-            if (Items.ContainsKey(name))
-                throw new InvalidOperationException($"Could not register layer with name '{name}'. An item with that key had " +
-                    $"already been registered in this registry");
+			if (Items.ContainsKey(name))
+				throw new InvalidOperationException($"Could not register layer with name '{name}'. An item with that key had " +
+					$"already been registered in this registry");
 
-            var newItem = new LoweryFeatureLayer(name, uri);
+            var newItem = new LoweryStandaloneTable(definition, standaloneTable);
+            newItem.Registry = this;
             Items.Add(name, newItem);
             return newItem;
-        }
+		}
 
-        public LoweryFeatureLayer Register(string name, Type type, LayerCreationParams layerCreationParams)
+        public LoweryFeatureLayer RegisterLayer(string name, LoweryFeatureDefinition definition, FeatureLayer featureLayer)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentNullException(nameof(name), "Registered layer name cannot be null, empty, or white space.");
+			if (string.IsNullOrWhiteSpace(name))
+				throw new ArgumentNullException(nameof(name), "Registered layer name cannot be null, empty, or white space.");
 
-            if (Items.ContainsKey(name))
-                throw new InvalidOperationException($"Could not register layer with name '{name}'. An item with that key had " +
-                    $"already been registered in this registry");
+			if (Items.ContainsKey(name))
+				throw new InvalidOperationException($"Could not register layer with name '{name}'. An item with that key had " +
+					$"already been registered in this registry");
 
-            var newItem = new LoweryFeatureLayer(name, layerCreationParams);
-            Items.Add(name, newItem);
-            return newItem;
-        }
-
-        public LoweryFeatureLayer Register(string name, MapMember mapMember)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentNullException(nameof(name), "Registered layer name cannot be null, empty, or white space.");
-
-            if (Items.ContainsKey(name))
-                throw new InvalidOperationException($"Could not register layer with name '{name}'. An item with that key had " +
-                    $"already been registered in this registry");
-
-            var newItem = new LoweryFeatureLayer(name, mapMember);
-            Items.Add(name, newItem);
-            return newItem;
-        }
+            var newItem = new LoweryFeatureLayer(definition, featureLayer);
+			newItem.Registry = this;
+			Items.Add(name, newItem);
+			return newItem;
+		}
 
         public void Remove(string name)
         {

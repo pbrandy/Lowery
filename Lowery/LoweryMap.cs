@@ -51,6 +51,26 @@ namespace Lowery
 			});
 		}
 
+		public ItemRegistry Registry(string name)
+		{
+			bool exists = Registries.TryGetValue(name, out var registry);
+			if (!exists)
+			{
+				registry = new(this);
+				Registries.Add(name, registry);
+			}
+			return registry;
+		}
+
+		#region Accessing
+		public GroupLayer? GroupLayer(string name)
+		{
+			if (Map is null)
+				return null;
+
+			return Map.GetLayersAsFlattenedList().OfType<GroupLayer>().FirstOrDefault(g => g.Name == name);
+		}
+
 		public Layer? Layer(string name, string? parentName = null)
 		{
 			if (Map is null)
@@ -60,14 +80,6 @@ namespace Lowery
 				return Map.GetLayersAsFlattenedList().OfType<FeatureLayer>().FirstOrDefault(l => l.Name == name);
 			else
 				return Map.GetLayersAsFlattenedList().OfType<FeatureLayer>().FirstOrDefault(l => l.Name == name && ((Layer)l.Parent).Name == parentName);
-		}
-
-		public GroupLayer? GroupLayer(string name)
-		{
-			if (Map is null)
-				return null;
-
-			return Map.GetLayersAsFlattenedList().OfType<GroupLayer>().FirstOrDefault(g => g.Name == name);
 		}
 
 		public Layer? URILayer(string uri, string? parentName = null)
@@ -81,137 +93,41 @@ namespace Lowery
 				return Map.GetLayersAsFlattenedList().OfType<FeatureLayer>().Where(l => l.URI == uri && ((Layer)l.Parent).Name == parentName).FirstOrDefault();
 		}
 
-		public ItemRegistry FindOrCreateRegistry(string name)
-		{
-			bool exists = Registries.TryGetValue(name, out var registry);
-			if (!exists)
-			{
-				registry = new(this);
-				Registries.Add(name, registry);
-			} 
-			return registry;
-		}
-
-		public Table Table(string name)
+		public Table? Table(string name, string? parentName = null)
 		{
 			return QueuedTask.Run(() =>
 			{
-				return Map.FindStandaloneTables(name)[0].GetTable();
+				if (parentName == null)
+					return Map.FindStandaloneTables(name)?[0].GetTable();
+				else
+					return Map.FindStandaloneTables(name).Where(t => ((Layer)t.Parent).Name == parentName).FirstOrDefault()?.GetTable();
 			}).Result;
 		}
 
-		public IEnumerable<MapMember> SearchForItem(ILoweryDefinition definition, Type type, string? Parent = null)
+		public IEnumerable<MapMember> SearchForItem(string name, Type type, string? parent = null)
 		{
 			IEnumerable<MapMember> rv = Array.Empty<MapMember>();
 			if (type == typeof(Layer))
 			{
 				List<Layer> layers;
-				if (definition.Parent != null)
-					layers = Map.FindLayers(definition.Name).Where(l => l.GetType() == type && ((MapMember)l.Parent).Name == definition.Parent).ToList();
+				if (parent != null)
+					layers = Map.FindLayers(name).Where(l => l.GetType() == type && ((MapMember)l.Parent).Name == parent).ToList();
 				else
-					layers = Map.GetLayersAsFlattenedList().Where(l => l.Name == definition.Name && l.GetType() == type).ToList();
+					layers = Map.GetLayersAsFlattenedList().Where(l => l.Name == name && l.GetType() == type).ToList();
 				return layers;
 			}
 			else if (type == typeof(StandaloneTable))
 			{
 				List<StandaloneTable> tables;
-				if (definition.Parent != null)
-					tables = Map.FindStandaloneTables(definition.Name).Where(t => ((MapMember)t.Parent).Name == definition.Parent).ToList();
+				if (parent != null)
+					tables = Map.FindStandaloneTables(name).Where(t => ((MapMember)t.Parent).Name == parent).ToList();
 				else
-					tables = Map.FindStandaloneTables(definition.Name).ToList();
+					tables = Map.FindStandaloneTables(name).ToList();
 				return tables;
 			}
 			else
 				throw new ArgumentException($"The {type.Name} type is not a valid map member item.");
 		}
-
-		public async Task BuildMapFromJSON(string json)
-		{
-			var data = JsonNode.Parse(json);
-			if (data == null)
-				throw new NullReferenceException();
-
-			await QueuedTask.Run(async () =>
-			{
-				// Gather Data Sources
-				Dictionary<string, DataSource> dataSources = new Dictionary<string, DataSource>();
-				JsonArray? dataSourceArray = data["DataSources"]?.AsArray();
-				if (dataSourceArray != null)
-				{
-					List<LoweryDataSourceDefinition> dslist = dataSourceArray.Deserialize<List<LoweryDataSourceDefinition>>() ?? new();
-                    foreach (var definition in dslist)
-                    {
-                        dataSources.Add(definition.Name, new DataSource(definition));
-                    }
-                }
-
-				// Make Group Layers
-				Dictionary<string, GroupLayer> groups = new();
-                JsonArray? groupArray = data["GroupLayers"]?.AsArray();
-				if (groupArray != null)
-				{
-					List<LoweryGroupDefinition> groupList = dataSourceArray.Deserialize<List<LoweryGroupDefinition>>() ?? new();
-					groupList.ForEach(definition => { groups.Add(definition.Name, CreateGroupLayer(definition)); });
-				}
-
-				// Feature Layers
-				JsonArray? layerArray = data["FeatureLayers"]?.AsArray();
-				if (layerArray != null)
-				{
-					foreach (JsonNode node in layerArray)
-					{
-						string dataSource = (string?)node["DataSource"] ?? "";
-						if (string.IsNullOrEmpty(dataSource) || !dataSources.ContainsKey(dataSource))
-							continue;
-						LoweryFeatureLayer fl = await CreateFeatureLayer(node, dataSources[dataSource]);
-					}
-				}
-
-				// Tables 
-				JsonArray? tableArray = data["Tables"]?.AsArray();
-				if (tableArray != null)
-				{
-					foreach (JsonNode node in tableArray)
-					{
-						string dataSource = (string?)node["DataSource"] ?? "";
-						if (string.IsNullOrEmpty(dataSource) || !dataSources.ContainsKey(dataSource))
-							continue;
-					}
-				}
-			});
-		}
-
-		private GroupLayer CreateGroupLayer(LoweryGroupDefinition definition)
-		{
-			if (definition.Parent == null)
-				return LayerFactory.Instance.CreateGroupLayer(Map, 0, definition.Name);
-
-            GroupLayer? parent = GroupLayer(definition.Parent);
-            if (parent != null)
-                return LayerFactory.Instance.CreateGroupLayer(parent, 0, definition.Name);
-            else
-                throw new LayerNotFoundException();
-		}
-
-		private bool RegisterGroupLayer(LoweryGroupDefinition definition)
-		{
-			return true;
-		}
-
-		private async Task<LoweryFeatureLayer> CreateFeatureLayer(JsonNode node, DataSource dataSource)
-		{
-			string? parentName = (string?)node?["Parent"];
-			ILayerContainerEdit parent;
-			if (string.IsNullOrEmpty(parentName) || GroupLayer(parentName) == null)
-				parent = Map;
-			else
-				parent = GroupLayer(parentName);
-
-			LoweryFeatureLayer layer = new LoweryFeatureLayer(
-				(string?)node?["Name"],
-				new Uri(Path.Join(dataSource.Path, (string?)node?["Path"])));
-			await layer.CreateAsync(parent);
-			return layer;
-		}
+		#endregion
 	}
 }
