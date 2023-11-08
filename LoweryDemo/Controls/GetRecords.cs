@@ -27,7 +27,6 @@ namespace LoweryDemo.Controls
         protected override async void OnClick()
         {
             string jsonData = File.ReadAllText("MapDescription.json");
-            await Module1.Current.LoweryMap.BuildMapFromJSON(jsonData);
 
             /*
             IEnumerable<Resource> resources = await Module1.Current.DB.Table("Resources").Get<Resource>();
@@ -44,6 +43,7 @@ namespace LoweryDemo.Controls
     {
         protected override async void OnClick()
         {
+            /*
             var t = Module1.Current.LoweryMap.Table("Resources");
             long oid = await t.Insert(
                 new Resource()
@@ -51,6 +51,7 @@ namespace LoweryDemo.Controls
                     Label = "Iota",
                     Description = "I should learn the Greek alphabet."
                 });
+            */
         }
     }
 }

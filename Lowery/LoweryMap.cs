@@ -17,6 +17,7 @@ namespace Lowery
 	public class LoweryMap
 	{
 		public Map Map { get; set; }
+		public LoweryMapDefinition? MapDefinition { get; set; }
 		public Dictionary<string, ItemRegistry> Registries { get; set; } = new();
 
 		public LoweryMap(Map map)
@@ -60,6 +61,20 @@ namespace Lowery
 				Registries.Add(name, registry);
 			}
 			return registry;
+		}
+
+		public bool Validate()
+		{
+			if (MapDefinition == null)
+				return true;
+
+			bool status = true;
+			MapDefinition.Features.ForEach(definition => {
+                Registry(definition.Registry ?? "default").Items.TryGetValue(definition.Name, out ILoweryItem? item);
+				if(item == null)
+					status = false;
+            });
+			return status;
 		}
 
 		#region Accessing

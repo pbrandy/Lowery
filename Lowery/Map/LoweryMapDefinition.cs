@@ -14,8 +14,10 @@ namespace Lowery
 {
 	public class LoweryMapDefinition
 	{
-		private Dictionary<string, GroupLayer> _grouplayers = new Dictionary<string, GroupLayer>();
-		private Dictionary<string, DataSource> _dataSources = new Dictionary<string, DataSource>();
+        internal Dictionary<string, GroupLayer> GroupLayers { get; set; } = new Dictionary<string, GroupLayer>();
+        internal Dictionary<string, DataSource> DataSources { get; set; } = new Dictionary<string, DataSource>();
+		internal List<LoweryFeatureDefinition> Features { get; set; } = new();
+		internal List<LoweryTableDefintion> Tables { get; set; } = new();
 
 		public Map Map { get; set; }
 		
@@ -42,7 +44,7 @@ namespace Lowery
 					List<LoweryDataSourceDefinition> dslist = dataSourceArray.Deserialize<List<LoweryDataSourceDefinition>>() ?? new();
 					foreach (var definition in dslist)
 					{
-						_dataSources.Add(definition.Name, new DataSource(definition));
+						DataSources.Add(definition.Name, new DataSource(definition));
 					}
 				}
 
@@ -51,7 +53,7 @@ namespace Lowery
 				if (groupArray != null)
 				{
 					List<LoweryGroupDefinition> groupList = dataSourceArray.Deserialize<List<LoweryGroupDefinition>>() ?? new();
-					groupList.ForEach(definition => { _grouplayers.Add(definition.Name, CreateGroupLayer(definition)); });
+					groupList.ForEach(definition => { GroupLayers.Add(definition.Name, CreateGroupLayer(definition)); });
 				}
 
 				// Feature Layers
@@ -59,8 +61,9 @@ namespace Lowery
 				if (layerArray != null)
 				{
 					List<LoweryFeatureDefinition> featureList = layerArray.Deserialize<List<LoweryFeatureDefinition>>() ?? new();
+					Features.AddRange(featureList);
 					featureList.ForEach(async definition => { 
-						if (_dataSources.TryGetValue(definition.DataSource, out var dataSource))
+						if (DataSources.TryGetValue(definition.DataSource, out var dataSource))
 						{
 							LoweryFeatureLayer fl = await CreateFeatureLayer(definition, dataSource);
 						}
@@ -71,12 +74,14 @@ namespace Lowery
 				JsonArray? tableArray = data["Tables"]?.AsArray();
 				if (tableArray != null)
 				{
-					foreach (JsonNode node in tableArray)
-					{
-						string dataSource = (string?)node["DataSource"] ?? "";
-						if (string.IsNullOrEmpty(dataSource) || !_dataSources.ContainsKey(dataSource))
-							continue;
-					}
+					List<LoweryTableDefintion> tableDefintions = layerArray.Deserialize<List<LoweryTableDefintion>>() ?? new();
+					Tables.AddRange(tableDefintions);
+					tableDefintions.ForEach(async definition => { 
+						if (DataSources.TryGetValue(definition.DataSource, out var dataSource))
+						{
+							LoweryStandaloneTable standaloneTable = await CreateStandaloneTable(definition, dataSource);
+						}
+					});
 				}
 			});
 		}
@@ -86,7 +91,7 @@ namespace Lowery
 			if (definition.Parent == null)
 				return LayerFactory.Instance.CreateGroupLayer(Map, 0, definition.Name);
 
-			_grouplayers.TryGetValue(definition.Parent, out var parent);
+			GroupLayers.TryGetValue(definition.Parent, out var parent);
 			if (parent != null)
 				return LayerFactory.Instance.CreateGroupLayer(parent, 0, definition.Name);
 			else
@@ -96,29 +101,32 @@ namespace Lowery
 		private async Task<LoweryFeatureLayer> CreateFeatureLayer(LoweryFeatureDefinition definition, DataSource dataSource)
 		{
 			ILayerContainerEdit parent;
-			if (definition.Parent != null && _grouplayers.TryGetValue(definition.Parent, out var container))
+			if (definition.Parent != null && GroupLayers.TryGetValue(definition.Parent, out var container))
 				parent = container;
 			else
 				parent = Map;
 
-			LoweryFeatureLayer layer = new LoweryFeatureLayer(
-				definition,
-				new Uri(Path.Join(dataSource.Path, definition.Path)));
-			await layer.CreateAsync(parent);
+			FeatureLayer featureLayer = (FeatureLayer)await QueuedTask.Run(async () => {
+				return LayerFactory.Instance.CreateLayer(null, parent);
+			});
+			LoweryFeatureLayer layer = new LoweryFeatureLayer(definition, featureLayer);
 			return layer;
 		}
 
-		private async Task<StandaloneTable> CreateStandaloneTable(LoweryTableDefintion definition, DataSource dataSource)
+		private async Task<LoweryStandaloneTable> CreateStandaloneTable(LoweryTableDefintion definition, DataSource dataSource)
 		{
 			IStandaloneTableContainerEdit parent;
-			if (definition.Parent != null && _grouplayers.TryGetValue(definition.Parent, out var container))
+			if (definition.Parent != null && GroupLayers.TryGetValue(definition.Parent, out var container))
 				parent = container;
 			else
 				parent = Map;
 
-			return await QueuedTask.Run(() => {
+			StandaloneTable standaloneTable = await QueuedTask.Run(() => {
 				return StandaloneTableFactory.Instance.CreateStandaloneTable(null, parent);
 			});
+
+			LoweryStandaloneTable table = new LoweryStandaloneTable(definition, standaloneTable);
+			return table;
 		}
 	}
 }

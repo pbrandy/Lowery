@@ -12,7 +12,7 @@
                     Content, Framework, Editing, Geodatabase, Geometry, Geoprocessing, Layouts, Map Authoring, Map Exploration -->
   </AddInInfo>
   <modules>
-    <insertModule id="LoweryDemo_Module" className="Module1" autoLoad="false" caption="Module1">
+    <insertModule id="LoweryDemo_Module" className="Module1" autoLoad="true" caption="Module1">
       <!-- uncomment to have the control hosted on a separate tab-->
       <tabs>
         <!--<tab id="LoweryDemo_Tab1" caption="New Tab">

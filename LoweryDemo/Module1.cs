@@ -8,6 +8,7 @@ using ArcGIS.Desktop.Extensions;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
+using ArcGIS.Desktop.Framework.Events;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Layouts;
 using ArcGIS.Desktop.Mapping;
@@ -15,6 +16,7 @@ using ArcGIS.Desktop.Mapping.Events;
 using Lowery;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,11 +29,18 @@ namespace LoweryDemo
         private static Module1 _this = null;
         public LoweryConnection DB { get; set; }
         public LoweryMap LoweryMap { get; set; }
-        public Module1()
+
+        public void Tmethod2(EventArgs obj)
         {
-            var m = FrameworkApplication.Panes.OfType<IMapPane>().FirstOrDefault(x => x.Caption == "Map").MapView.Map;
-            LoweryMap = new LoweryMap(m);
-            //MapViewInitializedEvent.Subscribe(RegisterMap);
+
+        }
+
+        private void RegisterMap(MapViewEventArgs args)
+        {
+            LoweryMap = new LoweryMap(args.MapView.Map); 
+            string jsonData = File.ReadAllText("MapDescription.json");
+            LoweryMap.MapDefinition = new LoweryMapDefinition(LoweryMap.Map, jsonData);
+
         }
 
         /// <summary>
@@ -44,14 +53,9 @@ namespace LoweryDemo
         {
             //DB = new LoweryConnection("C:\\Users\\kyled\\Documents\\ArcGIS\\Projects\\LoweryTest\\LoweryTest.gdb");
             DB = new LoweryConnection("C:\\Users\\Kyle\\Documents\\ArcGIS\\Projects\\PGE_Test\\PGE_Test.gdb");
-            
-            return base.Initialize();
-        }
 
-        private void RegisterMap(MapViewEventArgs args)
-        {
-            LoweryMap = new LoweryMap(args.MapView.Map);
-            var register = LoweryMap.Registry("main");
+            MapViewInitializedEvent.Subscribe(RegisterMap);
+            return base.Initialize();
         }
 
         /// <summary>
