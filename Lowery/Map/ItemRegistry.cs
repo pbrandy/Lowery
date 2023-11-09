@@ -1,4 +1,5 @@
-﻿using ArcGIS.Desktop.Mapping;
+﻿using ArcGIS.Core.Data;
+using ArcGIS.Desktop.Mapping;
 
 namespace Lowery
 {
@@ -28,6 +29,12 @@ namespace Lowery
                     valid = false;
             }
             return valid;
+        }
+
+        public ILoweryItem? Retrieve(string name)
+        {
+            Items.TryGetValue(name, out ILoweryItem? item);
+            return item;
         }
 
         public LoweryStandaloneTable RegisterTable(string name, LoweryTableDefintion definition, StandaloneTable standaloneTable)

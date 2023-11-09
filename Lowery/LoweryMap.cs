@@ -70,10 +70,14 @@ namespace Lowery
 
 			bool status = true;
 			MapDefinition.Features.ForEach(definition => {
-                Registry(definition.Registry ?? "default").Items.TryGetValue(definition.Name, out ILoweryItem? item);
+                LoweryFeatureLayer? item = Registry(definition.Registry ?? "default").Retrieve(definition.Name) as LoweryFeatureLayer;
 				if(item == null)
-					status = false;
+				{
+                    status = false;
+                }
+				definition.Equals(item);
             });
+
 			return status;
 		}
 
