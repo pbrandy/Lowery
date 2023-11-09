@@ -17,11 +17,6 @@ namespace Lowery
 		public IDisplayTable? DisplayTable { get; set; }
 		public IEnumerable<LoweryFieldDefinition>? MandatoryFields { get; set; }
 
-        public LoweryStandaloneTable(string name)
-        {
-            Name = name;
-        }
-
 		public LoweryStandaloneTable(LoweryTableDefintion defintion, StandaloneTable instance)
 		{
 			Name = defintion.Name;

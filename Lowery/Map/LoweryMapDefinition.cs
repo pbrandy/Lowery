@@ -14,8 +14,9 @@ namespace Lowery
 {
 	public class LoweryMapDefinition
 	{
-        internal Dictionary<string, GroupLayer> GroupLayers { get; set; } = new Dictionary<string, GroupLayer>();
-        internal Dictionary<string, DataSource> DataSources { get; set; } = new Dictionary<string, DataSource>();
+        Dictionary<string, GroupLayer> GroupLayers = new Dictionary<string, GroupLayer>();
+        Dictionary<string, DataSource> DataSources = new Dictionary<string, DataSource>();
+		internal List<LoweryGroupDefinition> Groups { get; set; } = new();
 		internal List<LoweryFeatureDefinition> Features { get; set; } = new();
 		internal List<LoweryTableDefintion> Tables { get; set; } = new();
 

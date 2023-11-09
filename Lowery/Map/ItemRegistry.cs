@@ -37,21 +37,6 @@ namespace Lowery
             return item;
         }
 
-        public LoweryStandaloneTable RegisterTable(string name, LoweryTableDefintion definition, StandaloneTable standaloneTable)
-		{
-			if (string.IsNullOrWhiteSpace(name))
-				throw new ArgumentNullException(nameof(name), "Registered layer name cannot be null, empty, or white space.");
-
-			if (Items.ContainsKey(name))
-				throw new InvalidOperationException($"Could not register layer with name '{name}'. An item with that key had " +
-					$"already been registered in this registry");
-
-            var newItem = new LoweryStandaloneTable(definition, standaloneTable);
-            newItem.Registry = this;
-            Items.Add(name, newItem);
-            return newItem;
-		}
-
         public LoweryFeatureLayer RegisterLayer(string name, LoweryFeatureDefinition definition, FeatureLayer featureLayer)
         {
 			if (string.IsNullOrWhiteSpace(name))
@@ -65,6 +50,30 @@ namespace Lowery
 			newItem.Registry = this;
 			Items.Add(name, newItem);
 			return newItem;
+		}
+
+        public void Register(string name, LoweryFeatureLayer loweryFeatureLayer)
+        {
+			if (string.IsNullOrWhiteSpace(name))
+				throw new ArgumentNullException(nameof(name), "Registered layer name cannot be null, empty, or white space.");
+
+			if (Items.ContainsKey(name))
+				throw new InvalidOperationException($"Could not register layer with name '{name}'. An item with that key had " +
+					$"already been registered in this registry");
+            loweryFeatureLayer.Registry = this;
+            Items.Add(name, loweryFeatureLayer);
+		}
+
+        public void Register(string name, LoweryStandaloneTable loweryStandaloneTable)
+        {
+			if (string.IsNullOrWhiteSpace(name))
+				throw new ArgumentNullException(nameof(name), "Registered table name cannot be null, empty, or white space.");
+
+			if (Items.ContainsKey(name))
+				throw new InvalidOperationException($"Could not register table with name '{name}'. An item with that key had " +
+					$"already been registered in this registry");
+			loweryStandaloneTable.Registry = this;
+            Items.Add(name, loweryStandaloneTable);
 		}
 
         public void Remove(string name)

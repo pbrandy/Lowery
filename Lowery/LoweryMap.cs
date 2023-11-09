@@ -3,6 +3,7 @@ using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using Lowery.Exceptions;
+using Lowery.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -52,8 +53,10 @@ namespace Lowery
 			});
 		}
 
-		public ItemRegistry Registry(string name)
+		public ItemRegistry Registry(string? name = null)
 		{
+			if (name == null)
+				name = "default";
 			bool exists = Registries.TryGetValue(name, out var registry);
 			if (!exists)
 			{
@@ -63,22 +66,83 @@ namespace Lowery
 			return registry;
 		}
 
-		public bool Validate()
+		public async Task<bool> Validate()
 		{
 			if (MapDefinition == null)
 				return true;
 
 			bool status = true;
-			MapDefinition.Features.ForEach(definition => {
-                LoweryFeatureLayer? item = Registry(definition.Registry ?? "default").Retrieve(definition.Name) as LoweryFeatureLayer;
-				if(item == null)
-				{
-                    status = false;
-                }
-				definition.Equals(item);
-            });
+			foreach(var definition in MapDefinition.Features)
+			{
+				bool validated;
+				LoweryFeatureLayer? item = Registry(definition.Registry).Retrieve(definition.Name) as LoweryFeatureLayer;
+				if (item == null)
+					status = false;
+				else
+					validated = await item.ValidateDefinition(definition);
+			}
 
 			return status;
+		}
+
+		public async Task<bool> RegisterExisting()
+		{
+			if (MapDefinition == null)
+				return false;
+
+			var allLayers = Map.GetLayersAsFlattenedList();
+			var allTables = Map.GetStandaloneTablesAsFlattenedList();
+			List<string> missingItems = new();
+			await QueuedTask.Run(() => {
+				// Layer Registration
+				foreach (var def in MapDefinition.Features)
+				{
+					IEnumerable<FeatureLayer> matches = allLayers.OfType<FeatureLayer>().Where(l => l.Name == def.Name && l.GetParentName() == def.Parent);
+					for (int i = 0; i < def.MandatoryFields?.Length; i++)
+					{
+						LoweryFieldDefinition field = def.MandatoryFields[i];
+						bool validFieldFound = false;
+						foreach (var match in matches)
+						{
+							var descriptions = match.GetFieldDescriptions();
+							var validField = descriptions.FirstOrDefault(d => d.Name == field.Field && d.Type == field.Type && d.Alias == field.Alias);
+							if (validField != null)
+							{
+								validFieldFound = true;
+								Registry(def.Registry).Register(def.Name, new LoweryFeatureLayer(def, match));
+								break;
+							}
+						}
+						if (!validFieldFound)
+							missingItems.Add(def.Name);
+					}
+				}
+				// Table Registration
+				foreach (var def in MapDefinition.Tables)
+				{
+					IEnumerable<StandaloneTable> matches = allTables.Where(l => l.Name == def.Name && l.GetParentName() == def.Parent);
+					for (int i = 0; i < def.MandatoryFields?.Length; i++)
+					{
+						LoweryFieldDefinition field = def.MandatoryFields[i];
+						bool validFieldFound = false;
+						foreach (var match in matches)
+						{
+							var descriptions = match.GetFieldDescriptions();
+							var validField = descriptions.FirstOrDefault(d => d.Name == field.Field && d.Type == field.Type && d.Alias == field.Alias);
+							if (validField != null)
+							{
+								validFieldFound = true;
+								Registry(def.Registry).Register(def.Name, new LoweryStandaloneTable(def, match));
+								break;
+							}
+						}
+						if (!validFieldFound)
+							missingItems.Add(def.Name);
+					}
+				}
+			});
+			
+			return (missingItems.Count == 0);
 		}
 
 		#region Accessing

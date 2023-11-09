@@ -16,7 +16,7 @@
       <!-- uncomment to have the control hosted on a separate tab-->
       <tabs>
         <!--<tab id="LoweryDemo_Tab1" caption="New Tab">
-          <group refID="LoweryDemo_Group1"/>
+   gripping       <group refID="LoweryDemo_Group1"/>
         </tab>-->
       </tabs>
       <groups>

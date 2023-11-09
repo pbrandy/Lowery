@@ -30,29 +30,6 @@ namespace Lowery
             MandatoryFields = definition.MandatoryFields;
         }
 
-        public LoweryFeatureLayer(string name, FeatureLayer instance)
-        {
-            Name = name;
-            Uri = instance.URI;
-        }
-
-        public LoweryFeatureLayer(string name, LayerCreationParams layerParameters)
-        {
-            Name = name;
-            Uri = layerParameters.Uri.ToString();
-            LayerParameters = layerParameters;
-        }
-
-        public LoweryFeatureLayer(string name, MapMember mapMember)
-        {
-            if (mapMember.GetType() != typeof(FeatureLayer))
-                throw new ArgumentException($"Supplied map member {mapMember.Name} is of type {mapMember.GetType()} not Feature Layer.");
-            Name = name;
-            FeatureLayer = (FeatureLayer)mapMember;
-            DisplayTable = mapMember as IDisplayTable;
-            Uri = mapMember.URI;
-        }
-
         public async Task<bool> Validate()
         {
             if (DisplayTable == null) return false;
@@ -72,5 +49,36 @@ namespace Lowery
                 return true;
             });
         }
+
+        public async Task<bool> ValidateDefinition(LoweryFeatureDefinition definition)
+        {
+			if (DisplayTable == null) return false;
+
+            if (Name != definition.Name)
+                return false;
+
+            if ((FeatureLayer.Parent as MapMember)?.Name != definition.Parent)
+                return false;
+
+			if (!(MandatoryFields == null ^ definition.MandatoryFields == null))
+                return false;
+
+			if (MandatoryFields != null && definition.MandatoryFields != null)
+            {
+                return await QueuedTask.Run(() => {
+					var fieldDescriptions = DisplayTable.GetFieldDescriptions();
+					foreach (var field in MandatoryFields)
+					{
+                        bool containsField = definition.MandatoryFields.Contains(field);
+						var targetDesc = fieldDescriptions.FirstOrDefault(f => f.Name == field.Field);
+						if (targetDesc is null || field.Type != targetDesc.Type)
+							return false;
+					}
+                    return true;
+				});
+            }
+            else
+                return true;
+		}
     }
 }

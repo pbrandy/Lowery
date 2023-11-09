@@ -9,8 +9,8 @@ using System.Reflection;
 namespace Lowery
 {
     public static class TableExtensions
-    {
-        public static async Task<IEnumerable<T>> Get<T>(this Table table, string whereClause = "") where T : class, new()
+	{
+		public static async Task<IEnumerable<T>> Get<T>(this Table table, string whereClause = "") where T : class, new()
         {
             QueryFilter filter = new QueryFilter() { WhereClause = whereClause };
             return await Get<T>(table, filter);
