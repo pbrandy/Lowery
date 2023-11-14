@@ -15,13 +15,14 @@ namespace Lowery
         public string Name { get; set; }
         public FeatureLayer FeatureLayer { get; private set; }
         public string Uri { get; set; }
+		public DataSource DataSource { get; set; }
 		public string? Parent { get; set; }
 		public ItemRegistry? Registry { get; set; }
 		public LayerCreationParams? LayerParameters { get; set; }
         public IDisplayTable? DisplayTable { get; set; }
         public IEnumerable<LoweryFieldDefinition>? MandatoryFields { get; set; }
 
-        public LoweryFeatureLayer(LoweryFeatureDefinition definition, FeatureLayer instance)
+		public LoweryFeatureLayer(LoweryFeatureDefinition definition, FeatureLayer instance)
         {
             Name = definition.Name;
             Uri = definition.DataSource;

@@ -12,6 +12,7 @@ namespace Lowery
 	{
 		string Name { get; }
 		public string Uri { get; set; }
+		public DataSource DataSource { get; set; }
 		public string? Parent { get; set; }
         public ItemRegistry? Registry { get; set; }
 		public IDisplayTable? DisplayTable { get; set; }

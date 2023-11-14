@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lowery
 {
-	internal class LoweryDataSourceDefinition
+	public class LoweryDataSourceDefinition
 	{
 		public string Name { get; set; } = string.Empty;
 		public string Type { get; set; } = string.Empty;

@@ -7,11 +7,13 @@ using Lowery.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Version = ArcGIS.Core.Data.Version;
 
 namespace Lowery
 {
@@ -72,7 +74,7 @@ namespace Lowery
 				return true;
 
 			bool status = true;
-			foreach(var definition in MapDefinition.Features)
+			foreach (var definition in MapDefinition.Features)
 			{
 				bool validated;
 				LoweryFeatureLayer? item = Registry(definition.Registry).Retrieve(definition.Name) as LoweryFeatureLayer;
@@ -93,7 +95,8 @@ namespace Lowery
 			var allLayers = Map.GetLayersAsFlattenedList();
 			var allTables = Map.GetStandaloneTablesAsFlattenedList();
 			List<string> missingItems = new();
-			await QueuedTask.Run(() => {
+			await QueuedTask.Run(() =>
+			{
 				// Layer Registration
 				foreach (var def in MapDefinition.Features)
 				{
@@ -141,7 +144,7 @@ namespace Lowery
 					}
 				}
 			});
-			
+
 			return (missingItems.Count == 0);
 		}
 
@@ -210,6 +213,65 @@ namespace Lowery
 			}
 			else
 				throw new ArgumentException($"The {type.Name} type is not a valid map member item.");
+		}
+		#endregion
+
+		#region Versioning
+		public async Task SwitchToVersion(string targetVersionName, string dataSource, string? registryName)
+		{
+			ItemRegistry reg = Registry(registryName);
+			LoweryFeatureLayer item = reg.RetrieveByDataSource<LoweryFeatureLayer>(dataSource);
+			await QueuedTask.Run(() =>
+			{
+				Geodatabase? geodatabase = item.FeatureLayer.GetFeatureClass().GetDatastore() as Geodatabase;
+				if (geodatabase == null || geodatabase.IsVersioningSupported())
+					throw new VersioningNotSupportedException($"Versioning is not supported on layer {item.FeatureLayer.Name}.");
+
+				using VersionManager versionManager = geodatabase.GetVersionManager();
+				using Version currentVersion = versionManager.GetCurrentVersion();
+				using Version? targetVersion = versionManager.GetVersions().ToList()
+												  .FirstOrDefault(v => v.GetName().Equals(targetVersionName, StringComparison.CurrentCultureIgnoreCase));
+
+				if (targetVersion == null)
+					throw new VersionNotFoundException($"Version of name {targetVersionName} not found in {geodatabase.GetPath}");
+				Map.ChangeVersion(currentVersion, targetVersion);
+			});
+		}
+
+		public async Task PostToParentVersion(string dataSource, Func<bool> conflictResolution, string? registryName,
+			ReconcileOptions? reconcileOptions, PostOptions? postOptions)
+		{
+
+			ItemRegistry reg = Registry(registryName);
+			LoweryFeatureLayer item = reg.RetrieveByDataSource<LoweryFeatureLayer>(dataSource);
+			await QueuedTask.Run(() =>
+			{
+				Geodatabase? geodatabase = item.FeatureLayer.GetFeatureClass().GetDatastore() as Geodatabase;
+				if (geodatabase == null || !geodatabase.IsVersioningSupported())
+					throw new VersioningNotSupportedException($"Versioning is not supported on layer {item.FeatureLayer.Name}.");
+
+				using VersionManager versionManager = geodatabase.GetVersionManager();
+				using Version currentVersion = versionManager.GetCurrentVersion();
+				using Version parentVersion = currentVersion.GetParent() ?? 
+				throw new VersionNotFoundException("Parent version not found. Either it has been deleted or you are attempting to post the default version.");
+
+				ReconcileOptions reconcileOptions = new ReconcileOptions(parentVersion) { 
+					ConflictResolutionMethod = ConflictResolutionMethod.Continue,
+					ConflictDetectionType = ConflictDetectionType.ByRow,
+					ConflictResolutionType = ConflictResolutionType.FavorTargetVersion
+				};
+
+				PostOptions postOptions = new PostOptions(parentVersion) { ServiceSynchronizationType = ServiceSynchronizationType.Synchronous };
+
+				ReconcileResult reconcileResult = currentVersion.Reconcile(reconcileOptions, postOptions);
+				if (reconcileResult.HasConflicts)
+				{
+					if (conflictResolution.Invoke())
+						currentVersion.Post(postOptions);
+				}
+				else
+					currentVersion.Post(postOptions);
+			});
 		}
 		#endregion
 	}

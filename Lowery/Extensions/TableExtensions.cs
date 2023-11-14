@@ -16,7 +16,7 @@ namespace Lowery
             return await Get<T>(table, filter);
         }
 
-        private static async Task<IEnumerable<T>> Get<T>(this Table table, QueryFilter? queryFilter) where T : class, new()
+		public static async Task<IEnumerable<T>> Get<T>(this Table table, QueryFilter? queryFilter) where T : class, new()
         {
             List<T> results = new();
             Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(T));
@@ -153,5 +153,5 @@ namespace Lowery
                 }, table);
             });
         }
-    }
+	}
 }

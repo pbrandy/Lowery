@@ -1,5 +1,6 @@
 ﻿using ArcGIS.Core.Data;
 using ArcGIS.Desktop.Mapping;
+using Lowery.Exceptions;
 
 namespace Lowery
 {
@@ -35,6 +36,15 @@ namespace Lowery
         {
             Items.TryGetValue(name, out ILoweryItem? item);
             return item;
+        }
+
+        internal T RetrieveByDataSource<T>(string name) where T : ILoweryItem
+        {
+            ILoweryItem? matchedItem = Items.Values.OfType<T>().FirstOrDefault(i => i.DataSource.Name == name);
+            if (matchedItem == null)
+                throw new LayerNotFoundException(name);
+
+            return (T)matchedItem;
         }
 
         public LoweryFeatureLayer RegisterLayer(string name, LoweryFeatureDefinition definition, FeatureLayer featureLayer)
