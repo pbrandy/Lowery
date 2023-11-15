@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Lowery.Definitions;
 
 namespace Lowery
 {
-	public enum DataSourceType { FGDB, EGDB, SHP }
+    public enum DataSourceType { FGDB, EGDB, SHP }
 
 	public class DataSource
 	{

@@ -1,5 +1,6 @@
 ﻿using ArcGIS.Core.Data;
 using ArcGIS.Desktop.Mapping;
+using Lowery.Definitions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Lowery
 {
-	public interface ILoweryItem
+    public interface ILoweryItem
 	{
 		string Name { get; }
 		public string Uri { get; set; }

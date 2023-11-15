@@ -2,6 +2,7 @@
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using Lowery.Definitions;
 using Lowery.Exceptions;
 using Lowery.Extensions;
 using System;
@@ -17,7 +18,7 @@ using Version = ArcGIS.Core.Data.Version;
 
 namespace Lowery
 {
-	public class LoweryMap
+    public class LoweryMap
 	{
 		public Map Map { get; set; }
 		public LoweryMapDefinition? MapDefinition { get; set; }
@@ -74,7 +75,7 @@ namespace Lowery
 				return true;
 
 			bool status = true;
-			foreach (var definition in MapDefinition.Features)
+			foreach (LoweryFeatureDefinition definition in MapDefinition.Definitions["Features"])
 			{
 				bool validated;
 				LoweryFeatureLayer? item = Registry(definition.Registry).Retrieve(definition.Name) as LoweryFeatureLayer;
@@ -87,65 +88,52 @@ namespace Lowery
 			return status;
 		}
 
-		public async Task<bool> RegisterExisting()
+		public async Task<(bool, IEnumerable<string>?)> RegisterExisting()
 		{
 			if (MapDefinition == null)
-				return false;
+				return (false, null);
 
-			var allLayers = Map.GetLayersAsFlattenedList();
+			var allFeatureLayers = Map.GetLayersAsFlattenedList().OfType<FeatureLayer>();
 			var allTables = Map.GetStandaloneTablesAsFlattenedList();
 			List<string> missingItems = new();
 			await QueuedTask.Run(() =>
 			{
 				// Layer Registration
-				foreach (var def in MapDefinition.Features)
+				foreach (LoweryFeatureDefinition def in MapDefinition.Definitions["Features"])
 				{
-					IEnumerable<FeatureLayer> matches = allLayers.OfType<FeatureLayer>().Where(l => l.Name == def.Name && l.GetParentName() == def.Parent);
-					for (int i = 0; i < def.MandatoryFields?.Length; i++)
-					{
-						LoweryFieldDefinition field = def.MandatoryFields[i];
-						bool validFieldFound = false;
-						foreach (var match in matches)
-						{
-							var descriptions = match.GetFieldDescriptions();
-							var validField = descriptions.FirstOrDefault(d => d.Name == field.Field && d.Type == field.Type && d.Alias == field.Alias);
-							if (validField != null)
-							{
-								validFieldFound = true;
-								Registry(def.Registry).Register(def.Name, new LoweryFeatureLayer(def, match));
-								break;
-							}
-						}
-						if (!validFieldFound)
-							missingItems.Add(def.Name);
-					}
-				}
+                    LoweryFeatureLayer? validTable = def.FindValid(allFeatureLayers);
+                    if (validTable != null)
+                        Registry(def.Registry).Register(def.Name, validTable);
+                    else
+                        missingItems.Add(def.Name);
+                }
 				// Table Registration
-				foreach (var def in MapDefinition.Tables)
+				foreach (LoweryTableDefintion def in MapDefinition.Definitions["Tables"])
 				{
-					IEnumerable<StandaloneTable> matches = allTables.Where(l => l.Name == def.Name && l.GetParentName() == def.Parent);
-					for (int i = 0; i < def.MandatoryFields?.Length; i++)
-					{
-						LoweryFieldDefinition field = def.MandatoryFields[i];
-						bool validFieldFound = false;
-						foreach (var match in matches)
-						{
-							var descriptions = match.GetFieldDescriptions();
-							var validField = descriptions.FirstOrDefault(d => d.Name == field.Field && d.Type == field.Type && d.Alias == field.Alias);
-							if (validField != null)
-							{
-								validFieldFound = true;
-								Registry(def.Registry).Register(def.Name, new LoweryStandaloneTable(def, match));
-								break;
-							}
-						}
-						if (!validFieldFound)
-							missingItems.Add(def.Name);
-					}
+					LoweryStandaloneTable? validTable = def.FindValid(allTables);
+					if (validTable != null)
+						Registry(def.Registry).Register(def.Name, validTable);
+					else
+						missingItems.Add(def.Name);
 				}
 			});
 
-			return (missingItems.Count == 0);
+			return (missingItems.Count == 0, missingItems);
+		}
+
+		public async Task<bool> CreateOrRegister()
+		{
+			(bool allRegistered, IEnumerable<string>? missing) = await RegisterExisting();
+			if (allRegistered || missing == null)
+				return true;
+			else if (MapDefinition == null)
+				return false;
+
+			foreach(string name in missing)
+			{
+				await MapDefinition.Create(name);
+			}
+			return true;
 		}
 
 		#region Accessing

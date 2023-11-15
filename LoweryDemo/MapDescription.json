@@ -19,15 +19,15 @@
   ],
   "FeatureLayers": [
     {
-      "Name": "Resource Feature",
+      "Name": "Resource Features",
       "DataSource": "MainGDB",
       "Path": "ResourceFeatures",
       "Parent": "Resources",
       "MandatoryFields": [
         {
-          "Field": "",
-          "Alias": "",
-          "Type": ""
+          "Field": "PrimCo",
+          "Alias": "PrimCo",
+          "Type": "SmallInteger"
         }
       ],
       "Style": "",

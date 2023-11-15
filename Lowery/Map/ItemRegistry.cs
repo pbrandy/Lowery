@@ -1,5 +1,6 @@
 ﻿using ArcGIS.Core.Data;
 using ArcGIS.Desktop.Mapping;
+using Lowery.Definitions;
 using Lowery.Exceptions;
 
 namespace Lowery
