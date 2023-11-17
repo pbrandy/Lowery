@@ -19,9 +19,6 @@ namespace Lowery
         
         Dictionary<string, GroupLayer> GroupLayers = new Dictionary<string, GroupLayer>();
         Dictionary<string, DataSource> DataSources = new Dictionary<string, DataSource>();
-        //internal List<LoweryGroupDefinition> Groups { get; set; } = new();
-        //internal List<LoweryFeatureDefinition> Features { get; set; } = new();
-        //internal List<LoweryTableDefintion> Tables { get; set; } = new();
 
         internal Dictionary<string, List<ILoweryDefinition>> Definitions { get; } = new() {
             { "Groups", new List<ILoweryDefinition>() },
@@ -67,7 +64,6 @@ namespace Lowery
                 Definitions["Groups"] = groupArray.Deserialize<List<LoweryGroupDefinition>>(options)?.Cast<ILoweryDefinition>().ToList() ?? new();
 
             // Feature Layers
-            ILoweryDefinition fuck = new LoweryFeatureDefinition();
             JsonArray? layerArray = data["FeatureLayers"]?.AsArray();
             if (layerArray != null)
                 Definitions["Features"] = layerArray.Deserialize<List<LoweryFeatureDefinition>>(options)?.Cast<ILoweryDefinition>().ToList() ?? new();
@@ -106,7 +102,23 @@ namespace Lowery
 
         public async Task Create(string itemName)
         {
-
+            ILoweryDefinition def = Definitions.Values.SelectMany(x => x).ToList().First(d => d.Name == itemName);
+            switch(def)
+            {
+                case LoweryGroupDefinition group:
+                    await CreateGroupLayer(group);
+                    break;
+                case LoweryFeatureDefinition feature:
+                    DataSources.TryGetValue(feature.DataSource, out var datasource);
+                    if (datasource != null)
+						await CreateFeatureLayer(feature, datasource);
+                    break;
+                case LoweryTableDefintion table:
+                    DataSources.TryGetValue(table.DataSource, out var tableSource);
+                    if (tableSource != null)
+						await CreateStandaloneTable(table, tableSource);
+                    break;
+            }
         }
 
         private async Task<GroupLayer> CreateGroupLayer(LoweryGroupDefinition definition)

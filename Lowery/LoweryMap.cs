@@ -23,15 +23,40 @@ namespace Lowery
 		public Map Map { get; set; }
 		public LoweryMapDefinition? MapDefinition { get; set; }
 		public Dictionary<string, ItemRegistry> Registries { get; set; } = new();
+        public bool IsValid { get; set; }
 
-		public LoweryMap(Map map)
+        public LoweryMap(Map map)
 		{
 			Map = map;
 			LayersAddedEvent.Subscribe(LayersAdded);
-			LayersRemovedEvent.Subscribe(LayersAdded);
+			LayersRemovedEvent.Subscribe(LayersRemovedAsync);
 		}
 
-		private void LayersAdded(LayerEventsArgs args)
+
+		private async void LayersAdded(LayerEventsArgs args)
+		{
+			if (args.Layers[0].Map.URI != Map?.URI)
+				return;
+
+			if (IsValid)
+				return;
+
+			foreach (Layer layer in args.Layers)
+			{
+				foreach (var registry in Registries)
+				{
+					if (registry.Value.Items.ContainsKey(layer.Name) && await Validate())
+						registry.Value.IsValid = true;
+				}
+			}
+
+			if (Registries.Values.All(x => x.IsValid))
+				IsValid = true;
+			else
+				IsValid = false;
+		}
+
+		private async void LayersRemovedAsync(LayerEventsArgs args)
 		{
 			if (args.Layers[0].Map.URI != Map?.URI)
 				return;
@@ -40,9 +65,15 @@ namespace Lowery
 			{
 				foreach (var registry in Registries)
 				{
-					registry.Value.Items.ContainsKey(layer.Name);
+					if (registry.Value.Items.ContainsKey(layer.Name) && await Validate())
+						IsValid = true;
 				}
 			}
+
+			if (Registries.Values.All(x => x.IsValid))
+				IsValid = true;
+			else
+				IsValid = false;
 		}
 
 		public async Task<Map> Build(MapDescription description)
