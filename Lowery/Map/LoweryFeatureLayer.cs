@@ -52,7 +52,7 @@ namespace Lowery
             });
         }
 
-        public async Task<bool> ValidateDefinition(LoweryFeatureDefinition definition)
+        public async Task<bool> ValidateDefinition(ILoweryDefinition definition)
         {
 			if (DisplayTable == null) return false;
 

@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Lowery.Definitions
 {
-    internal interface ILoweryDefinition
+    public interface ILoweryDefinition
     {
         string Name { get; set; }
         string? Parent { get; set; }
+        LoweryFieldDefinition[]? MandatoryFields { get; set; }
     }
 }

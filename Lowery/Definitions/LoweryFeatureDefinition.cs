@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Lowery.Definitions
 {
-    public class LoweryFeatureDefinition : ILoweryDefinition
+    public class LoweryFeatureDefinition : ILoweryDefinition, IRegisterable
     {
         public string Name { get; set; } = string.Empty;
         public string DataSource { get; set; } = string.Empty;

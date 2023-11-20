@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Lowery
 {
-    public class LoweryStandaloneTable : ILoweryItem
+    public class LoweryStandaloneTable : ILoweryItem, IRegisterable
 	{
 		public string Name { get; }
 		public string Uri { get; set; }

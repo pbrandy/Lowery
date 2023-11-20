@@ -18,6 +18,8 @@ namespace Lowery
         public ItemRegistry? Registry { get; set; }
 		public IDisplayTable? DisplayTable { get; set; }
 		public IEnumerable<LoweryFieldDefinition>? MandatoryFields { get; set; }
-		
-	}
+		Task<bool> ValidateDefinition(ILoweryDefinition definition);
+
+
+    }
 }

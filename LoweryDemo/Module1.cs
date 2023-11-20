@@ -29,17 +29,14 @@ namespace LoweryDemo
         private static Module1 _this = null;
         public LoweryConnection DB { get; set; }
         public LoweryMap LoweryMap { get; set; }
-
-        public void Tmethod2(EventArgs obj)
-        {
-
-        }
+        public string ToolActiveCondition { get; } = "ToolActiveCondition";
 
         private async void RegisterMap(MapViewEventArgs args)
         {
             LoweryMap = new LoweryMap(args.MapView.Map); 
             string jsonData = File.ReadAllText("MapDescription.json");
             LoweryMap.MapDefinition = new LoweryMapDefinition(LoweryMap.Map, jsonData);
+            LoweryMap.ValidityCondition = ToolActiveCondition;
             await LoweryMap.RegisterExisting();
         }
 
