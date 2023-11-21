@@ -10,5 +10,6 @@ namespace Lowery.Definitions
     {
         public string Name { get; set; } = string.Empty;
         public string? Parent { get; set; }
-    }
+		public LoweryFieldDefinition[]? MandatoryFields { get; set; }
+	}
 }

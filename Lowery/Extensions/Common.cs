@@ -28,7 +28,8 @@ namespace Lowery.Internal
 			foreach (var p in properties.Where(p => p.GetCustomAttribute<Related>() != null))
 			{
 				string? fieldName = p.GetCustomAttribute<FieldName>()?.Name;
-				primaries.Add(new ExpandedPropertyInfo(fieldName ?? p.Name, p) { IsRelational = true });
+                string? relationName = p.GetCustomAttribute<Related>()?.RelationshipClass;
+				primaries.Add(new ExpandedPropertyInfo(fieldName ?? p.Name, p) { IsRelational = true, RelationName = relationName });
 			}
 			results.Add("Related", related);
 

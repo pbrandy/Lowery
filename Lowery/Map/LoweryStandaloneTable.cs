@@ -9,14 +9,13 @@ using System.Threading.Tasks;
 
 namespace Lowery
 {
-    public class LoweryStandaloneTable : ILoweryItem, IRegisterable
+    public class LoweryStandaloneTable : LoweryBase, ILoweryItem
 	{
 		public string Name { get; }
 		public string Uri { get; set; }
 		public DataSource DataSource { get; set; }
 		public string? Parent { get; set; }
 		public ItemRegistry? Registry { get; set; }
-		public IDisplayTable? DisplayTable { get; set; }
 		public IEnumerable<LoweryFieldDefinition>? MandatoryFields { get; set; }
 
 		public LoweryStandaloneTable(LoweryTableDefintion defintion, StandaloneTable instance)
@@ -26,5 +25,11 @@ namespace Lowery
 			Parent = defintion.Parent;
 			MandatoryFields = defintion.MandatoryFields;
 		}
-    }
+
+		public Task<bool> ValidateDefinition(ILoweryDefinition definition)
+		{
+			throw new NotImplementedException();
+		}
+
+	}
 }

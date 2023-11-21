@@ -13,6 +13,7 @@ namespace Lowery.Mappings
 		public bool IsIgnorable { get; set; } = false;
 		public bool IsRelational { get; set; } = false;
 		public string FieldName { get; set; }
+		public string? RelationName { get; set; }
 		public PropertyInfo PropertyInfo { get; set; }
         public ExpandedPropertyInfo(string name, PropertyInfo propertyInfo)
         {

@@ -33,10 +33,10 @@ namespace Lowery
             return valid;
         }
 
-        public ILoweryItem? Retrieve(string name)
+        public T? Retrieve<T>(string name) where T : class, ILoweryItem
         {
             Items.TryGetValue(name, out ILoweryItem? item);
-            return item;
+            return item as T;
         }
 
         internal T RetrieveByDataSource<T>(string name) where T : ILoweryItem

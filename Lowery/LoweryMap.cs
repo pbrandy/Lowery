@@ -34,7 +34,6 @@ namespace Lowery
             LayersRemovedEvent.Subscribe(LayersRemovedAsync);
         }
 
-
         public async Task<Map> Build(MapDescription description)
         {
             return await QueuedTask.Run(() =>
@@ -86,7 +85,7 @@ namespace Lowery
             bool collectionValid = true;
             foreach (T definition in collection)
             {
-                ILoweryItem? item = Registry(definition.Registry).Retrieve(definition.Name);
+                ILoweryItem? item = Registry(definition.Registry).Retrieve<ILoweryItem>(definition.Name);
                 if (item == null)
                     collectionValid = false;
                 else if (!await item.ValidateDefinition(definition))

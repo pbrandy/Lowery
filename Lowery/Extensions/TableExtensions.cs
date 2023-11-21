@@ -46,6 +46,13 @@ namespace Lowery
                             gentype?.Invoke(mapping, new object[] { row[prop.FieldName] })
                             );
                     }
+                    foreach (var prop in propInfo["Related"])
+                    {
+                        Geodatabase gdb = (Geodatabase)table.GetDatastore();
+
+						var relationshipDefinitions = gdb.GetDefinition<RelationshipClassDefinition>(prop.RelationName);
+                        
+                    }
                     results.Add(newEntity);
                 }
             });
