@@ -1,10 +1,6 @@
 ﻿using ArcGIS.Core.Data;
+using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Lowery
 {
@@ -16,14 +12,16 @@ namespace Lowery
 		{
 			if (DisplayTable == null)
 				return new List<T>();
-			return await DisplayTable.GetTable().Get<T>(whereClause);
-		}
+			Table table = await QueuedTask.Run(() => { return DisplayTable.GetTable(); });
+			return await table.Get<T>(whereClause);
+        }
 
 		public async Task<IEnumerable<T>> Get<T>(QueryFilter? filter) where T : class, new()
 		{
 			if (DisplayTable == null)
 				return new List<T>();
-			return await DisplayTable.GetTable().Get<T>(filter);
+            Table table = await QueuedTask.Run(() => { return DisplayTable.GetTable(); });
+            return await table.Get<T>(filter);
 		}
 	}
 }

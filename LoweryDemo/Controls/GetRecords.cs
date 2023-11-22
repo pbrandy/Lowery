@@ -26,15 +26,8 @@ namespace LoweryDemo.Controls
     {
         protected override async void OnClick()
         {
-            string jsonData = File.ReadAllText("MapDescription.json");
-
-            /*
-            IEnumerable<Resource> resources = await Module1.Current.DB.Table("Resources").Get<Resource>();
-            foreach(Resource resource in resources)
-            {
-                await Module1.Current.DB.Relation("Resources_ResourceIdentifier").GetRelated<Resource, ResourceIdentifier>(resource);
-            }
-            */
+            var reg = Module1.Current.LoweryMap.Registry("Main");
+            var result = await reg.Retrieve<LoweryStandaloneTable>("Resources").Get<Resource>("objectid = 1");
         }
 
     }

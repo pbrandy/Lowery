@@ -29,7 +29,7 @@ namespace Lowery.Internal
 			{
 				string? fieldName = p.GetCustomAttribute<FieldName>()?.Name;
                 string? relationName = p.GetCustomAttribute<Related>()?.RelationshipClass;
-				primaries.Add(new ExpandedPropertyInfo(fieldName ?? p.Name, p) { IsRelational = true, RelationName = relationName });
+				related.Add(new ExpandedPropertyInfo(fieldName ?? p.Name, p) { IsRelational = true, RelationName = relationName });
 			}
 			results.Add("Related", related);
 
@@ -39,7 +39,7 @@ namespace Lowery.Internal
                 && p.GetCustomAttribute<Ignoreable>() == null))
 			{
 				string? fieldName = p.GetCustomAttribute<FieldName>()?.Name;
-                primaries.Add(new ExpandedPropertyInfo(fieldName ?? p.Name, p));
+                standard.Add(new ExpandedPropertyInfo(fieldName ?? p.Name, p));
 			}
 			results.Add("StandardProps", standard);
             return results;

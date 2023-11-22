@@ -24,6 +24,7 @@ namespace Lowery
 			Uri = instance.URI;
 			Parent = defintion.Parent;
 			MandatoryFields = defintion.MandatoryFields;
+			DisplayTable = instance;
 		}
 
 		public Task<bool> ValidateDefinition(ILoweryDefinition definition)
