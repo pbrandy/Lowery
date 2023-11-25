@@ -1,0 +1,37 @@
+﻿<ArcGIS defaultAssembly="Lowery30Demo.dll" defaultNamespace="Lowery30Demo" xmlns="http://schemas.esri.com/DADF/Registry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
+  <AddInInfo id="{eccb6da2-7cf4-492e-8d3b-da345d862391}" version="1.0" desktopVersion="3.0.36057">
+    <Name>Lowery30Demo</Name>
+    <Description>Lowery30Demo description</Description>
+    <Image>Images\AddinDesktop32.png</Image>
+    <Author>kyled</Author>
+    <Company>Acme</Company>
+    <Date>11/22/2023 9:44:40 AM</Date>
+    <Subject>Framework</Subject>
+    <!-- Note subject can be one or more of these topics:
+                    Content, Framework, Editing, Geodatabase, Geometry, Geoprocessing, Layouts, Map Authoring, Map Exploration -->
+  </AddInInfo>
+  <modules>
+    <insertModule id="Lowery30Demo_Module" className="Module1" autoLoad="true" caption="Module1">
+      <!-- uncomment to have the control hosted on a separate tab-->
+      <tabs>
+        <!--<tab id="Lowery30Demo_Tab1" caption="New Tab">
+          <group refID="Lowery30Demo_Group1"/>
+        </tab>-->
+      </tabs>
+      <groups>
+        <!-- comment this out if you have no controls on the Addin tab to avoid
+              an empty group-->
+        <group id="Lowery30Demo_Group1" caption="Group 1" appearsOnAddInTab="true">
+          <!-- host controls within groups -->
+          <button refID="Lowery30Demo_Controls_Test" size="large" />
+        </group>
+      </groups>
+      <controls>
+        <!-- add your controls here -->
+        <button id="Lowery30Demo_Controls_Test" caption="Test" className="Lowery30Demo.Controls.Test" loadOnClick="true" smallImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue16.png" largeImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue32.png">
+          <tooltip heading="Tooltip Heading">Tooltip text<disabledText /></tooltip>
+        </button>
+      </controls>
+    </insertModule>
+  </modules>
+</ArcGIS>

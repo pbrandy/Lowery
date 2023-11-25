@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lowery", "Lowery\Lowery.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoweryDemo", "LoweryDemo\LoweryDemo.csproj", "{C30A5060-D761-425B-91C8-7BB82FB395B5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lowery30Demo", "Lowery30Demo\Lowery30Demo.csproj", "{F385BE00-76BC-40A4-B3EE-4CC3234BE5DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C30A5060-D761-425B-91C8-7BB82FB395B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C30A5060-D761-425B-91C8-7BB82FB395B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C30A5060-D761-425B-91C8-7BB82FB395B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F385BE00-76BC-40A4-B3EE-4CC3234BE5DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F385BE00-76BC-40A4-B3EE-4CC3234BE5DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F385BE00-76BC-40A4-B3EE-4CC3234BE5DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F385BE00-76BC-40A4-B3EE-4CC3234BE5DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
