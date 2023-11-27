@@ -4,24 +4,27 @@ using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using Lowery.Internal;
 using Lowery.Mappings;
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 
 namespace Lowery
 {
     public static class TableExtensions
-	{
-		public static async Task<IEnumerable<T>> Get<T>(this Table table, string whereClause = "") where T : class, new()
+    {
+        public static async Task<IEnumerable<T>> Get<T>(this Table table, string whereClause = "") where T : class, new()
         {
             QueryFilter filter = new QueryFilter() { WhereClause = whereClause };
             return await Get<T>(table, filter);
         }
 
-		public static async Task<IEnumerable<T>> Get<T>(this Table table, QueryFilter? queryFilter) where T : class, new()
+        public static async Task<IEnumerable<T>> Get<T>(this Table table, QueryFilter? queryFilter) where T : class, new()
         {
             List<T> results = new();
             Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(T));
-            
-            await QueuedTask.Run(() =>
+            long? oid = null;
+            return await QueuedTask.Run(async () =>
             {
                 using RowCursor cursor = table.Search(queryFilter);
                 while (cursor.MoveNext())
@@ -31,32 +34,47 @@ namespace Lowery
 
                     foreach (var prop in propInfo["StandardProps"].Concat(propInfo["PrimaryKey"]))
                     {
-                        var method = typeof(TypeMapStore).GetMethod("GetMapping", 1, Array.Empty<Type>());
-                        var methodInfo = method?.MakeGenericMethod(prop.PropertyInfo.PropertyType);
-                        if (methodInfo == null)
-                            continue;
-
-                        var mapping = methodInfo.Invoke(null, null);
-                        if (mapping == null)
-                            continue;
-                        MethodInfo? gentype = mapping.GetType().GetMethod("Execute");
-
-                        prop.PropertyInfo.SetValue(
-                            newEntity,
-                            gentype?.Invoke(mapping, new object[] { row[prop.FieldName] })
-                            );
+                        Map(newEntity, row, prop);
+                        if (prop.IsPrimaryKey)
+                            oid = (long?)prop.PropertyInfo.GetValue(newEntity);
                     }
                     foreach (var prop in propInfo["Related"])
                     {
+                        if (oid == null)
+                            continue;
                         Geodatabase gdb = (Geodatabase)table.GetDatastore();
 
-						var relationshipDefinitions = gdb.GetDefinition<RelationshipClassDefinition>(prop.RelationName);
+                        //Related Rows
+                        var relationship = gdb.OpenDataset<RelationshipClass>(prop.RelationName);
+                        Type relatedType = prop.PropertyInfo.PropertyType;
+                        if (typeof(IEnumerable).IsAssignableFrom(relatedType))
+                            relatedType = relatedType.GetGenericArguments()[0];
                         
+                        var r =  typeof(RelationshipExtentions).GetMethod("GetRelated")?.MakeGenericMethod(new Type[] { relatedType }).Invoke(null, new object[] { relationship, oid });
+                        prop.PropertyInfo.SetValue(newEntity, r);
                     }
                     results.Add(newEntity);
-                }
+                };
+                return results;
             });
-            return results;
+        }
+
+        internal static void Map<T>(T newEntity, Row row, ExpandedPropertyInfo prop) where T : class
+        {
+            var method = typeof(TypeMapStore).GetMethod("GetMapping", 1, Array.Empty<Type>());
+            var methodInfo = method?.MakeGenericMethod(prop.PropertyInfo.PropertyType);
+            if (methodInfo == null)
+                return;
+
+            var mapping = methodInfo.Invoke(null, null);
+            if (mapping == null)
+                return;
+            MethodInfo? gentype = mapping.GetType().GetMethod("Execute");
+
+            prop.PropertyInfo.SetValue(
+                newEntity,
+                gentype?.Invoke(mapping, new object[] { row[prop.FieldName] })
+                );
         }
 
         public static async Task<long> Insert<T>(this Table table, T value) where T : class, new()
@@ -120,7 +138,7 @@ namespace Lowery
             PropertyInfo[] propertyInfos = typeof(T).GetProperties();
             PropertyInfo? primaryKeyInfo = propertyInfos.Where(p => Attribute.IsDefined(p, typeof(PrimaryKey))).FirstOrDefault();
             if (primaryKeyInfo == null)
-                throw new ArgumentNullException("Primary Key Missing", 
+                throw new ArgumentNullException("Primary Key Missing",
                     $"Could not locate primary key for object of type {typeof(T).Name}. Specify a primary key with a primary key attribute.");
             long? key = primaryKeyInfo.GetValue(value) as long?;
 
@@ -145,7 +163,8 @@ namespace Lowery
 
         public static async Task DeleteMany(this Table table, QueryFilter queryFilter)
         {
-            await QueuedTask.Run(() => {
+            await QueuedTask.Run(() =>
+            {
 
                 EditOperation editOperation = new EditOperation();
                 editOperation.Callback(context =>
@@ -160,5 +179,5 @@ namespace Lowery
                 }, table);
             });
         }
-	}
+    }
 }

@@ -12,9 +12,10 @@ namespace LoweryDemo.Models
         [PrimaryKey]
         public long ObjectID { get; set; }
 
+        /*
         [Related("Resources_ResourceIdentifier")]
         public Resource ResourceID { get; set; }
-
+        */
         public string IDType { get; set; }
 
         public string Identifier { get; set; }
