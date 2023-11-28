@@ -15,6 +15,7 @@ namespace Lowery30Demo.Models
 		[Related("Resources_ResourceIdentifier")]
 		public Resource ResourceID { get; set; }
 
+		[FieldName("IdentifierType")]
 		public string IDType { get; set; }
 
 		public string Identifier { get; set; }

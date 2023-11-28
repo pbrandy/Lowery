@@ -11,31 +11,34 @@ using System.Threading.Tasks;
 
 namespace Lowery
 {
-    public static class RelationshipExtentions
-    {
+	public static class RelationshipExtentions
+	{
 
-        public static IEnumerable<T> GetRelated<T>(this RelationshipClass relationship, long oid) where T : class, new()
-        {
-            Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(T));
+		public static async Task<IEnumerable<T>> GetRelated<T>(this RelationshipClass relationship, long oid, string source) where T : class, new()
+		{
+			return await QueuedTask.Run(() =>
+			{
+				using Geodatabase gdb = (Geodatabase)relationship.GetDatastore();
+				RelationshipClassDefinition def = relationship.GetDefinition();
+				Table targetTable;
+				if (def.GetOriginClass() == source)
+					targetTable = gdb.OpenDataset<Table>(def.GetDestinationClass());
+				else
+					targetTable = gdb.OpenDataset<Table>(def.GetOriginClass());
 
-            return QueuedTask.Run(() => {
-                Geodatabase gdb = (Geodatabase)relationship.GetDatastore();
-                IReadOnlyList<Row> relatedRows = relationship.GetRowsRelatedToOriginRows(new long[] { oid });
-                Table relatedTable = gdb.OpenDataset<Table>(relationship.GetDefinition().GetDestinationClass());
-                RelationshipClassDefinition def = relationship.GetDefinition();
+				return targetTable.Get<T>($"{def.GetOriginForeignKeyField()} = {oid}", new string[] { def.GetName() });
+			});
+		}
 
-                return relatedTable.Get<T>($"{def.GetOriginForeignKeyField()} = {oid}");
-            }).Result;
-        }
-        
-        public static async Task UpdatedRelated<SourceT, RelatedT>(this RelationshipClass relationship, RelatedT related)
-            where RelatedT : class, new()
-        {
-            Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(SourceT));
+		public static async Task UpdatedRelated<SourceT, RelatedT>(this RelationshipClass relationship, RelatedT related)
+			where RelatedT : class, new()
+		{
+			Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(SourceT));
 
-            await QueuedTask.Run(() => {
-                var definition = relationship.GetDefinition();
-            });
-        }
-    }
+			await QueuedTask.Run(() =>
+			{
+				var definition = relationship.GetDefinition();
+			});
+		}
+	}
 }

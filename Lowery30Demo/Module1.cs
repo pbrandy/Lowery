@@ -50,7 +50,7 @@ namespace Lowery30Demo
 		/// <summary>
 		/// Retrieve the singleton instance to this module here
 		/// </summary>
-		public static Module1 Current => _this ??= (Module1)FrameworkApplication.FindModule("LoweryDemo_Module");
+		public static Module1 Current => _this ??= (Module1)FrameworkApplication.FindModule("Lowery30Demo_Module");
 
 		#region Overrides
 		protected override bool Initialize()
