@@ -32,7 +32,7 @@ namespace Lowery30Demo
 
         public Module1()
         {
-			DB = new LoweryConnection("C:\\Users\\kyled\\Documents\\ArcGIS\\Projects\\LoweryTest\\LoweryTest.gdb");
+			//DB = new LoweryConnection("C:\\Users\\kyled\\Documents\\ArcGIS\\Projects\\LoweryTest\\LoweryTest.gdb");
 			//DB = new LoweryConnection("C:\\Users\\Kyle\\Documents\\ArcGIS\\Projects\\PGE_Test\\PGE_Test.gdb");
 
 			MapViewInitializedEvent.Subscribe(RegisterMap);

@@ -30,11 +30,9 @@ namespace Lowery
 			});
 		}
 
-		public static async Task UpdatedRelated<SourceT, RelatedT>(this RelationshipClass relationship, RelatedT related)
+		public static async Task UpdatedRelated<RelatedT>(this RelationshipClass relationship, RelatedT related)
 			where RelatedT : class, new()
 		{
-			Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(SourceT));
-
 			await QueuedTask.Run(() =>
 			{
 				var definition = relationship.GetDefinition();

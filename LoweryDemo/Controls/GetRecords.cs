@@ -27,7 +27,9 @@ namespace LoweryDemo.Controls
         protected override async void OnClick()
         {
             var reg = Module1.Current.LoweryMap.Registry("Main");
-            var result = await reg.Retrieve<LoweryStandaloneTable>("Resources").Get<Resource>("objectid = 1");
+            var table = reg.Retrieve<LoweryStandaloneTable>("Resources");
+            IEnumerable<Resource> rsrc = await table.Get<Resource>("objectid = 3");
+            await table.Delete(rsrc.FirstOrDefault());
         }
 
     }
@@ -36,15 +38,13 @@ namespace LoweryDemo.Controls
     {
         protected override async void OnClick()
         {
-            /*
-            var t = Module1.Current.LoweryMap.Table("Resources");
-            long oid = await t.Insert(
-                new Resource()
-                {
-                    Label = "Iota",
-                    Description = "I should learn the Greek alphabet."
-                });
-            */
+            var reg = Module1.Current.LoweryMap.Registry("Main");
+            var table = reg.Retrieve<LoweryStandaloneTable>("Resources");
+            await table.Insert<Resource>(new Resource()
+            {
+                Description = "Fish",
+                Label = "Stick"
+            });
         }
     }
 }
