@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Lowery
 {
-    public class LoweryFeatureLayer : ILoweryItem
+    public class LoweryFeatureLayer : LoweryBase, ILoweryItem
     {
         public string Name { get; set; }
         public FeatureLayer FeatureLayer { get; private set; }
@@ -20,7 +20,6 @@ namespace Lowery
 		public string? Parent { get; set; }
 		public ItemRegistry? Registry { get; set; }
 		public LayerCreationParams? LayerParameters { get; set; }
-        public IDisplayTable? DisplayTable { get; set; }
         public IEnumerable<LoweryFieldDefinition>? MandatoryFields { get; set; }
 
 		public LoweryFeatureLayer(LoweryFeatureDefinition definition, FeatureLayer instance)
@@ -28,6 +27,7 @@ namespace Lowery
             Name = definition.Name;
             Uri = definition.DataSource;
             FeatureLayer = instance;
+            MapMember = instance;
             DisplayTable = instance;
             MandatoryFields = definition.MandatoryFields;
         }

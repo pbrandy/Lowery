@@ -159,30 +159,6 @@ namespace Lowery
                     }
                     row.Store();
                 }
-                /*
-				EditOperation editOperation = new EditOperation();
-				editOperation.Callback(context =>
-				{
-					QueryFilter filter = new QueryFilter()
-					{
-						WhereClause = $"OBJECTID = {oid}"
-					};
-					using RowCursor rowCursor = table.Search(filter);
-					while (rowCursor.MoveNext())
-					{
-						using var row = rowCursor.Current;
-						context.Invalidate(row);
-
-						foreach (var prop in propInfo["StandardProps"])
-						{
-							row[prop.FieldName] = prop.PropertyInfo.GetValue(value);
-						}
-						row.Store();
-						context.Invalidate(row);
-					}
-				}, table);
-                editOperation.Execute();
-				*/
             });
         }
 

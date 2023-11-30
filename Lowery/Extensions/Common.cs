@@ -1,15 +1,10 @@
 ﻿using ArcGIS.Core.Data;
 using Lowery.Mappings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Lowery.Internal
 {
-    internal static class Common
+	internal static class Common
     {
         internal static Dictionary<string, List<ExpandedPropertyInfo>> SortPropertyInfo(Type t)
         {

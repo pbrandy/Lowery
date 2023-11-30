@@ -74,6 +74,15 @@ namespace Lowery
             editOperation.Modify(MapMember, (long)oid, attributes);
             await editOperation.ExecuteAsync();
         }
+		public async Task Update(QueryFilter filter)
+		{
+			if (MapMember == null)
+				return;
+
+			EditOperation editOperation = new EditOperation();
+			editOperation.Name = $"Update record in {MapMember.Name}";
+			await editOperation.ExecuteAsync();
+		}
 
 		public async Task Delete<T>(T value) where T : class, new()
 		{
@@ -89,6 +98,19 @@ namespace Lowery
             editOperation.Delete(MapMember, (long)oid);
             await editOperation.ExecuteAsync();
         }
+
+		public async Task Delete(QueryFilter filter)
+		{
+			if (MapMember == null)
+				return;
+			Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(T));
+
+            var rowsToDelete = ((IDisplayTable)MapMember).Select(filter).GetObjectIDs();
+			EditOperation editOperation = new();
+			editOperation.Name = $"Delete record from {MapMember.Name}";
+			editOperation.Delete(MapMember, rowsToDelete);
+			await editOperation.ExecuteAsync();
+		}
 
 		public async Task DeleteMany<T>(IEnumerable<T> values) where T : class, new()
 		{

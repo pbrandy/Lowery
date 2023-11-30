@@ -48,6 +48,22 @@ namespace Lowery
             return (T)matchedItem;
         }
 
+        public LoweryFeatureLayer? FeatureLayer(string name)
+        {
+			Items.TryGetValue(name, out ILoweryItem? item);
+            if (item?.GetType() == typeof(LoweryFeatureLayer))
+                return item as LoweryFeatureLayer;
+            else return null;
+		}
+
+        public LoweryStandaloneTable? StandaloneTable(string name)
+        {
+			Items.TryGetValue(name, out ILoweryItem? item);
+			if (item?.GetType() == typeof(LoweryStandaloneTable))
+				return item as LoweryStandaloneTable;
+			else return null;
+		}
+
         public LoweryFeatureLayer RegisterLayer(string name, LoweryFeatureDefinition definition, FeatureLayer featureLayer)
         {
 			if (string.IsNullOrWhiteSpace(name))
