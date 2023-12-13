@@ -28,9 +28,9 @@ namespace Lowery
 			DisplayTable = instance;
 		}
 
-		public Task<bool> ValidateDefinition(ILoweryDefinition definition)
+		public async Task<bool> ValidateDefinition(ILoweryDefinition definition)
 		{
-			throw new NotImplementedException();
+			return true;
 		}
 
 	}

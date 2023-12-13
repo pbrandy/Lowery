@@ -64,7 +64,7 @@ namespace Lowery
 
         internal static void Map<T>(T newEntity, Row row, ExpandedPropertyInfo prop) where T : class
         {
-            var method = typeof(TypeMapStore).GetMethod("GetMapping", 1, Array.Empty<Type>());
+			var method = typeof(TypeMapStore).GetMethod("GetMapping", 1, Array.Empty<Type>());
             var methodInfo = method?.MakeGenericMethod(prop.PropertyInfo.PropertyType);
             if (methodInfo == null)
                 return;

@@ -47,7 +47,7 @@ namespace Lowery
             //Insert
             EditOperation editOperation = new();
             editOperation.Name = $"Insert record into {MapMember.Name}";
-            RowToken token = editOperation.Create(MapMember);
+            RowToken token = editOperation.Create(MapMember, attributes);
             await editOperation.ExecuteAsync();
             return token.ObjectID;
         }
@@ -99,11 +99,10 @@ namespace Lowery
             await editOperation.ExecuteAsync();
         }
 
-		public async Task Delete(QueryFilter filter)
+		public async Task DeleteMany(QueryFilter filter)
 		{
 			if (MapMember == null)
 				return;
-			Dictionary<string, List<ExpandedPropertyInfo>> propInfo = Common.SortPropertyInfo(typeof(T));
 
             var rowsToDelete = ((IDisplayTable)MapMember).Select(filter).GetObjectIDs();
 			EditOperation editOperation = new();

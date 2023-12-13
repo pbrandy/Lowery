@@ -64,9 +64,9 @@ namespace Lowery
                 return true;
 
             bool status = true;
-            if (await ValidateCollection(MapDefinition.Definitions["Features"] as IEnumerable<LoweryFeatureDefinition>))
+            if (!await ValidateCollection(MapDefinition.Definitions["Features"].Cast<LoweryFeatureDefinition>()))
                 status = false;
-            if (await ValidateCollection(MapDefinition.Definitions["Tables"] as IEnumerable<LoweryTableDefintion>))
+            if (!await ValidateCollection(MapDefinition.Definitions["Tables"].Cast<LoweryTableDefintion>()))
                 status = false;
 
             if (status && !string.IsNullOrEmpty(ValidityCondition))

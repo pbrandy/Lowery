@@ -1,6 +1,8 @@
 ﻿using Lowery.Mapping;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,8 +18,11 @@ namespace Lowery.Mappings
             {
                 new TypeMapping<string?>(typeof(string), Convert.ToString),
                 new TypeMapping<short>(typeof(short), Convert.ToInt16),
+                new TypeMapping<short?>(typeof(short), (obj) => {return (obj is DBNull || obj == null) ? null : Convert.ToInt16(obj); }),
                 new TypeMapping<int>(typeof(int), Convert.ToInt32),
+                new TypeMapping<int?>(typeof(int?), (obj) => {return (obj is DBNull || obj == null) ? null : Convert.ToInt32(obj); }),
                 new TypeMapping<long>(typeof(long), Convert.ToInt64),
+                new TypeMapping<long?>(typeof(long?), (obj) => {return (obj is DBNull || obj == null) ? null : Convert.ToInt64(obj); }),
                 new TypeMapping<float>(typeof(float), (obj) => (float)Convert.ToDecimal(obj)),
                 new TypeMapping<double>(typeof(double), Convert.ToDouble),
                 new TypeMapping<DateTime>(typeof(DateTime), Convert.ToDateTime),
@@ -26,7 +31,7 @@ namespace Lowery.Mappings
             };
         }
 
-        public static TypeMapping<T> GetMapping<T>()
+		public static TypeMapping<T> GetMapping<T>()
 		{
 			var mapping = (TypeMapping<T>?)TypeMappings.FirstOrDefault(m => m.TargetType == typeof(T));
             if (mapping == null)

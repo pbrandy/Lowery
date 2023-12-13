@@ -62,7 +62,7 @@ namespace Lowery
             if ((FeatureLayer.Parent as MapMember)?.Name != definition.Parent)
                 return false;
 
-			if (!(MandatoryFields == null ^ definition.MandatoryFields == null))
+			if (MandatoryFields == null ^ definition.MandatoryFields == null)
                 return false;
 
 			if (MandatoryFields != null && definition.MandatoryFields != null)

@@ -1,6 +1,8 @@
-﻿using ArcGIS.Desktop.Framework.Contracts;
+﻿using ArcGIS.Core.Data;
+using ArcGIS.Desktop.Framework.Contracts;
 using Lowery;
 using Lowery30Demo.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace Lowery30Demo.Controls
@@ -9,8 +11,20 @@ namespace Lowery30Demo.Controls
 	{
 		protected override async void OnClick()
 		{
-			var reg = Module1.Current.LoweryMap.Registry("Main");
-			var result = await reg.Retrieve<LoweryStandaloneTable>("Resources").Get<Resource>("objectid = 1");
+			try
+			{
+				DatabaseConnectionProperties props = new(EnterpriseDatabaseType.SQLServer)
+				{
+					AuthenticationMode = AuthenticationMode.OSA,
+					Instance = "fwsqlsvr\\sqlexpress",
+					Database = "developer_pgelibrary"
+				};
+				LoweryConnection gdb = new(props);
+				var t = gdb.Table("developer_pgelibrary.DBO.batch");
+			}
+			catch (Exception ex)
+			{
+			}
 		}
 	}
 }

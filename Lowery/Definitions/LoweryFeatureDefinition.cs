@@ -41,6 +41,6 @@ namespace Lowery.Definitions
                 }
             }
             return null;
-        }
-    }
+		}
+	}
 }

@@ -90,15 +90,12 @@ namespace Lowery
         {
             return QueuedTask.Run(() =>
             {
-                //var defintions = Geodatabase.GetDefinitions<Definition>();
-
                 return Geodatabase.OpenDataset<Table>(tableName);
             }).Result;
         }
 
         public RelationshipClass Relation(string relationshipClassName)
         {
-
             return QueuedTask.Run(() =>
             {
                 return Geodatabase.OpenDataset<RelationshipClass>(relationshipClassName);
