@@ -1,5 +1,6 @@
 ﻿using ArcGIS.Core.Data;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
+using ArcGIS.Desktop.Internal.Mapping.Locate;
 using ArcGIS.Desktop.Mapping;
 using Lowery.Definitions;
 using Lowery.Exceptions;
@@ -16,9 +17,9 @@ namespace Lowery
 {
     public class LoweryMapDefinition
     {
-        
-        Dictionary<string, GroupLayer> GroupLayers = new Dictionary<string, GroupLayer>();
-        Dictionary<string, DataSource> DataSources = new Dictionary<string, DataSource>();
+
+        public Dictionary<string, GroupLayer> GroupLayers { get; set; } = new Dictionary<string, GroupLayer>();
+        Dictionary<string, DataSource> DataSources = new();
 
         internal Dictionary<string, List<ILoweryDefinition>> Definitions { get; } = new() {
             { "Groups", new List<ILoweryDefinition>() },
@@ -80,48 +81,54 @@ namespace Lowery
             if (data == null)
                 throw new NullReferenceException();
 
-            await QueuedTask.Run(() =>
+            await QueuedTask.Run(async () =>
             {
-                Definitions["Groups"].ForEach(async definition => { GroupLayers.Add(definition.Name, await CreateGroupLayer((LoweryGroupDefinition)definition)); });
+                foreach (ILoweryDefinition definition in Definitions["Groups"])
+                {
+                    GroupLayer groupLayer = await CreateGroupLayer((LoweryGroupDefinition)definition);
+                    GroupLayers.Add(definition.Name, groupLayer);
+                }
 
-                Definitions["Features"].ForEach(async definition  =>
+                foreach (ILoweryDefinition definition in Definitions["Features"])
                 {
                     LoweryFeatureDefinition castedDef = (LoweryFeatureDefinition)definition;
                     if (DataSources.TryGetValue(castedDef.DataSource, out var dataSource))
                         await CreateFeatureLayer(castedDef, dataSource);
-                });
+                }
 
-                Definitions["Tables"].ForEach(async definition =>
+                foreach (ILoweryDefinition definition in Definitions["Tables"])
                 {
                     LoweryTableDefintion castedDef = (LoweryTableDefintion)definition;
                     if (DataSources.TryGetValue(castedDef.DataSource, out var dataSource))
                         await CreateStandaloneTable(castedDef, dataSource);
-                });
+                }
+
             });
         }
 
         public async Task Create(string itemName)
         {
             ILoweryDefinition def = Definitions.Values.SelectMany(x => x).ToList().First(d => d.Name == itemName);
-            switch(def)
+            switch (def)
             {
                 case LoweryGroupDefinition group:
-                    await CreateGroupLayer(group);
+                    var newGL = await CreateGroupLayer(group);
+                    GroupLayers.TryAdd(group.Name, newGL);
                     break;
                 case LoweryFeatureDefinition feature:
                     DataSources.TryGetValue(feature.DataSource, out var datasource);
                     if (datasource != null)
-						await CreateFeatureLayer(feature, datasource);
+                        await CreateFeatureLayer(feature, datasource);
                     break;
                 case LoweryTableDefintion table:
                     DataSources.TryGetValue(table.DataSource, out var tableSource);
                     if (tableSource != null)
-						await CreateStandaloneTable(table, tableSource);
+                        await CreateStandaloneTable(table, tableSource);
                     break;
             }
         }
 
-        private async Task<GroupLayer> CreateGroupLayer(LoweryGroupDefinition definition)
+        internal async Task<GroupLayer> CreateGroupLayer(LoweryGroupDefinition definition)
         {
             ILayerContainerEdit parent;
             if (definition.Parent != null && GroupLayers.TryGetValue(definition.Parent, out var container))
@@ -135,7 +142,13 @@ namespace Lowery
                 throw new LayerNotFoundException();
         }
 
-        private async Task<LoweryFeatureLayer> CreateFeatureLayer(LoweryFeatureDefinition definition, DataSource dataSource)
+        internal async Task<LoweryFeatureLayer> CreateFeatureLayer(LoweryFeatureDefinition definition)
+		{
+			DataSources.TryGetValue(definition.DataSource, out DataSource dataSource);
+            return await CreateFeatureLayer(definition, dataSource);
+		}
+
+		internal async Task<LoweryFeatureLayer> CreateFeatureLayer(LoweryFeatureDefinition definition, DataSource dataSource)
         {
             ILayerContainerEdit parent;
             if (definition.Parent != null && GroupLayers.TryGetValue(definition.Parent, out var container))
@@ -143,15 +156,22 @@ namespace Lowery
             else
                 parent = Map;
 
-            FeatureLayer featureLayer = (FeatureLayer)await QueuedTask.Run(async () =>
+            FeatureLayer featureLayer = (FeatureLayer)await QueuedTask.Run(() =>
             {
-                return LayerFactory.Instance.CreateLayer(null, parent);
+                string uri = Path.Join(dataSource.Path + "\\" + definition.Path);
+                return LayerFactory.Instance.CreateLayer(new Uri(uri), parent, 0, definition.Name);
             });
             LoweryFeatureLayer layer = new LoweryFeatureLayer(definition, featureLayer);
             return layer;
         }
 
-        private async Task<LoweryStandaloneTable> CreateStandaloneTable(LoweryTableDefintion definition, DataSource dataSource)
+        internal async Task<LoweryStandaloneTable> CreateStandaloneTable(LoweryTableDefintion definition)
+        {
+			DataSources.TryGetValue(definition.DataSource, out DataSource dataSource);
+			return await CreateStandaloneTable(definition, dataSource);
+		}
+
+		internal async Task<LoweryStandaloneTable> CreateStandaloneTable(LoweryTableDefintion definition, DataSource dataSource)
         {
             IStandaloneTableContainerEdit parent;
             if (definition.Parent != null && GroupLayers.TryGetValue(definition.Parent, out var container))
@@ -160,8 +180,9 @@ namespace Lowery
                 parent = Map;
 
             StandaloneTable standaloneTable = await QueuedTask.Run(() =>
-            {
-                return StandaloneTableFactory.Instance.CreateStandaloneTable(null, parent);
+			{
+				string uri = Path.Join(dataSource.Path + "\\" + definition.Path);
+				return StandaloneTableFactory.Instance.CreateStandaloneTable(new Uri(uri), parent, 0, definition.Name);
             });
 
             LoweryStandaloneTable table = new LoweryStandaloneTable(definition, standaloneTable);

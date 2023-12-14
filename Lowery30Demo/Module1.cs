@@ -40,11 +40,13 @@ namespace Lowery30Demo
 
         private async void RegisterMap(MapViewEventArgs args)
 		{
+			/*
 			LoweryMap = new LoweryMap(args.MapView.Map);
 			string jsonData = File.ReadAllText("MapDescription.json");
 			LoweryMap.MapDefinition = new LoweryMapDefinition(LoweryMap.Map, jsonData);
 			LoweryMap.ValidityCondition = ToolActiveCondition;
 			await LoweryMap.RegisterExisting();
+			*/
 		}
 
 		/// <summary>

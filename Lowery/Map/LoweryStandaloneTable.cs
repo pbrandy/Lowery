@@ -30,7 +30,7 @@ namespace Lowery
 
 		public async Task<bool> ValidateDefinition(ILoweryDefinition definition)
 		{
-			return true;
+			return await Task.FromResult(true);
 		}
 
 	}

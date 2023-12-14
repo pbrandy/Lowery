@@ -50,7 +50,7 @@ namespace Lowery
             if (name == null)
                 name = "default";
             bool exists = Registries.TryGetValue(name, out var registry);
-            if (!exists)
+            if (registry == null)
             {
                 registry = new(this);
                 Registries.Add(name, registry);
@@ -107,7 +107,7 @@ namespace Lowery
                 // Layer Registration
                 foreach (LoweryFeatureDefinition def in MapDefinition.Definitions["Features"])
                 {
-                    LoweryFeatureLayer? validTable = def.FindValid(allFeatureLayers);
+                    LoweryFeatureLayer validTable = def.FindValid(allFeatureLayers);
                     if (validTable != null)
                         Registry(def.Registry).Register(def.Name, validTable);
                     else
@@ -116,7 +116,7 @@ namespace Lowery
                 // Table Registration
                 foreach (LoweryTableDefintion def in MapDefinition.Definitions["Tables"])
                 {
-                    LoweryStandaloneTable? validTable = def.FindValid(allTables);
+                    LoweryStandaloneTable validTable = def.FindValid(allTables);
                     if (validTable != null)
                         Registry(def.Registry).Register(def.Name, validTable);
                     else
@@ -129,17 +129,65 @@ namespace Lowery
 
         public async Task<bool> CreateOrRegister()
         {
-            (bool allRegistered, IEnumerable<string>? missing) = await RegisterExisting();
-            if (allRegistered || missing == null)
-                return true;
-            else if (MapDefinition == null)
+            if (MapDefinition == null)
                 return false;
 
-            foreach (string name in missing)
+            //Groups
+            var groups = Map.GetLayersAsFlattenedList().OfType<GroupLayer>();
+            foreach (var groupDef in MapDefinition.Definitions["Groups"])
             {
-                await MapDefinition.Create(name);
+                //Check For ExistingCopy in MapDef.Groups
+                if (MapDefinition.GroupLayers.ContainsKey(groupDef.Name))
+                    continue;
+                //Check For Copy in Map
+                if (groups.Any(g => g.Name == groupDef.Name))
+                {
+                    MapDefinition.GroupLayers.TryAdd(groupDef.Name, groups.First(g => g.Name == groupDef.Name));
+                    continue;
+                }
+				//Create
+                MapDefinition.GroupLayers.TryAdd(groupDef.Name, await MapDefinition.CreateGroupLayer((LoweryGroupDefinition)groupDef));
             }
-            return true;
+
+
+            var features = Map.GetLayersAsFlattenedList().OfType<FeatureLayer>();
+            foreach (var featDef in MapDefinition.Definitions["Features"])
+            {
+                LoweryFeatureDefinition def = (LoweryFeatureDefinition)featDef;
+                //See if already registered
+                if (Registry(def.Registry).Items.TryGetValue(def.Name, out ILoweryItem registeredLayer))
+                    continue;
+                //Register copy if in Map
+                if (features.Any(l => l.Name == def.Name))
+                {
+                    LoweryFeatureLayer discoveredLayer = new(def, features.First(l => l.Name == def.Name));
+					Registry(def.Registry).Register(def.Name, discoveredLayer);
+                    continue;
+				}
+				//Create
+				LoweryFeatureLayer newLayer = await MapDefinition.CreateFeatureLayer(def);
+                Registry(def.Registry).Register(def.Name, newLayer);
+            }
+
+			var tables = Map.GetStandaloneTablesAsFlattenedList();
+			foreach (var tableDef in MapDefinition.Definitions["Tables"])
+			{
+				LoweryTableDefintion def = (LoweryTableDefintion)tableDef;
+				//See if already registered
+				if (Registry(def.Registry).Items.TryGetValue(def.Name, out ILoweryItem registeredLayer))
+					continue;
+				//Register copy if in Map
+				if (features.Any(l => l.Name == def.Name))
+				{
+					LoweryStandaloneTable discoveredTable = new(def, tables.First(l => l.Name == def.Name));
+					Registry(def.Registry).Register(def.Name, discoveredTable);
+					continue;
+				}
+				//Create
+				LoweryStandaloneTable newLayer = await MapDefinition.CreateStandaloneTable(def);
+				Registry(def.Registry).Register(def.Name, newLayer);
+			}
+			return true;
         }
 
         #region Accessing

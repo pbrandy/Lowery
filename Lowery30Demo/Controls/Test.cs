@@ -20,9 +20,10 @@ namespace Lowery30Demo.Controls
 					Database = "developer_pgelibrary"
 				};
 				LoweryConnection gdb = new(props);
-				var t = gdb.Table("developer_pgelibrary.DBO.batch");
+				var t = gdb.Table("developer_pgelibrary.DBO.LookupAgency");
+				var x = await t.Get<LookupAgency>();
 			}
-			catch (Exception ex)
+			catch
 			{
 			}
 		}
