@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 
 namespace Lowery.Mappings
 {
-    internal static class TypeMapStore
+    public static class TypeMapStore
     {
-        internal static List<ITypeMapping> TypeMappings { get; set; } = SetDefaultTypeMappings();
+        public static List<ITypeMapping> TypeMappings { get; set; } = SetDefaultTypeMappings();
+
         private static List<ITypeMapping> SetDefaultTypeMappings()
         {
             return new List<ITypeMapping>()
@@ -26,22 +27,22 @@ namespace Lowery.Mappings
                 new TypeMapping<float>(typeof(float), (obj) => (float)Convert.ToDecimal(obj)),
                 new TypeMapping<double>(typeof(double), Convert.ToDouble),
                 new TypeMapping<DateTime>(typeof(DateTime), Convert.ToDateTime),
-                new TypeMapping<DateTime?>(typeof(DateTime?), (value) => { return (DateTime?)Convert.ToDateTime(value); }),
+                new TypeMapping<DateTime?>(typeof(DateTime?), (value) => { return (value is DBNull || value == null) ? null : Convert.ToDateTime(value); }),
                 new TypeMapping<Guid>(typeof(Guid), (obj) => Guid.Parse(Convert.ToString(obj) ?? ""))
             };
         }
 
 		public static TypeMapping<T> GetMapping<T>()
 		{
-			var mapping = (TypeMapping<T>?)TypeMappings.FirstOrDefault(m => m.TargetType == typeof(T));
+			var mapping = (TypeMapping<T>)TypeMappings.FirstOrDefault(m => m.TargetType == typeof(T));
             if (mapping == null)
                 throw new KeyNotFoundException($"Type mapping of type '{typeof(T).Name}' not found in registered type maps.");
             return mapping;
         }
 
-        public static TypeMapping<T> GetMapping<T>(string name)
+        public static ITypeMapping GetMapping(string name)
         {
-            var mapping = (TypeMapping<T>?)TypeMappings.FirstOrDefault(m => m.Name == name);
+            var mapping = TypeMappings.FirstOrDefault(m => m.Name == name);
             if (mapping == null)
                 throw new KeyNotFoundException($"Type mapping with name '{name}' not found in registered type maps.");
             return mapping;

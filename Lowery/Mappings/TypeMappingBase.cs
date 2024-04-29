@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Lowery.Mappings
 {
-    public interface ITypeMapping
-    {
-        string Name { get; set; }
-        Type TargetType { get; set; }
+	public class TypeMappingBase : ITypeMapping
+	{
+		public string Name { get; set; }
+		public Type TargetType { get; set; }
 		public Func<object, object> ConvertToDatabase { get; set; }
 	}
 }

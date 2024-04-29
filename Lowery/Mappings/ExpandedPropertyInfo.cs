@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace Lowery.Mappings
 {
@@ -13,7 +8,8 @@ namespace Lowery.Mappings
 		public bool IsIgnorable { get; set; } = false;
 		public bool IsRelational { get; set; } = false;
 		public string FieldName { get; set; }
-		public string? RelationName { get; set; }
+		public string RelationName { get; set; }
+		public string Mapping { get; set; }
 		public PropertyInfo PropertyInfo { get; set; }
         public ExpandedPropertyInfo(string name, PropertyInfo propertyInfo)
         {

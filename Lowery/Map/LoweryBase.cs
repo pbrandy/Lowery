@@ -7,6 +7,7 @@ using ArcGIS.Desktop.Internal.Core.CommonControls;
 using ArcGIS.Desktop.Mapping;
 using Lowery.Internal;
 using Lowery.Mappings;
+using System.Reflection;
 
 namespace Lowery
 {
@@ -17,18 +18,22 @@ namespace Lowery
 
 		public async Task<IEnumerable<T>> Get<T>(string whereClause = "") where T : class, new()
 		{
+			QueryFilter filter = new QueryFilter
+			{
+				WhereClause = whereClause
+			};
 			if (DisplayTable == null)
 				return new List<T>();
-			Table table = await QueuedTask.Run(() => { return DisplayTable.GetTable(); });
-			return await table.Get<T>(whereClause);
+            using Table table = await QueuedTask.Run(() => { return DisplayTable.GetTable(); });
+			return await table.Get<T>(filter);
         }
 
 		public async Task<IEnumerable<T>> Get<T>(QueryFilter? filter) where T : class, new()
 		{
 			if (DisplayTable == null)
 				return new List<T>();
-            Table table = await QueuedTask.Run(() => { return DisplayTable.GetTable(); });
-            return await table.Get<T>(filter);
+			using Table table = await QueuedTask.Run(() => { return DisplayTable.GetTable(); });
+			return await table.Get<T>(filter);
 		}
 
         public async Task<long?> Insert<T>(T value) where T : class, new()
@@ -49,6 +54,11 @@ namespace Lowery
             editOperation.Name = $"Insert record into {MapMember.Name}";
             RowToken token = editOperation.Create(MapMember, attributes);
             await editOperation.ExecuteAsync();
+
+			foreach (var prop in propInfo["GlobalIdentifier"])
+			{
+				prop.PropertyInfo.SetValue(value, token.GlobalID);
+			}
             return token.ObjectID;
         }
 
@@ -65,15 +75,26 @@ namespace Lowery
             editOperation.Name = $"Update record in {MapMember.Name}";
 
             // Attributes
-            Dictionary<string, object?> attributes = new();
+            Dictionary<string, object> attributes = new();
             foreach (var prop in propInfo["StandardProps"])
             {
-                attributes.Add(prop.FieldName, prop.PropertyInfo.GetValue(value));
+				var customMapping = propInfo["CustomMappings"].FirstOrDefault(p => p.FieldName == prop.FieldName);
+				if (customMapping != null)
+				{
+					var mapping = TypeMapStore.GetMapping(customMapping.Mapping);
+					var convertedValue = mapping.ConvertToDatabase.Invoke(customMapping.PropertyInfo.GetValue(value));
+					attributes.Add(prop.FieldName, convertedValue);
+				}
+				else
+				{
+					attributes.Add(prop.FieldName, prop.PropertyInfo.GetValue(value));
+				}
             }
 
             editOperation.Modify(MapMember, (long)oid, attributes);
             await editOperation.ExecuteAsync();
         }
+
 		public async Task Update(QueryFilter filter)
 		{
 			if (MapMember == null)
@@ -104,19 +125,14 @@ namespace Lowery
 			if (MapMember == null)
 				return;
 
-            var rowsToDelete = ((IDisplayTable)MapMember).Select(filter).GetObjectIDs();
-			EditOperation editOperation = new();
-			editOperation.Name = $"Delete record from {MapMember.Name}";
-			editOperation.Delete(MapMember, rowsToDelete);
-			await editOperation.ExecuteAsync();
+			await QueuedTask.Run(async () =>
+			{
+				var rowsToDelete = ((IDisplayTable)MapMember).Select(filter).GetObjectIDs();
+				EditOperation editOperation = new();
+				editOperation.Name = $"Delete record from {MapMember.Name}";
+				editOperation.Delete(MapMember, rowsToDelete);
+				await editOperation.ExecuteAsync();
+			});
 		}
-
-		public async Task DeleteMany<T>(IEnumerable<T> values) where T : class, new()
-		{
-            if (DisplayTable == null)
-                return;
-            Table table = await QueuedTask.Run(() => { return DisplayTable.GetTable(); });
-			//await table.DeleteMany<T>(values);
-        }
     }
 }
