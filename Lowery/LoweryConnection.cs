@@ -19,6 +19,12 @@ namespace Lowery
         public Geodatabase Geodatabase { get; private set; }
         public Task Initialize { get; set; }
 
+        public LoweryConnection(Uri databaseConnectionFilePath)
+        {
+            Connector = new DatabaseConnectionFile(databaseConnectionFilePath);
+            Initialize = InitializeAsync();
+        }
+
         public LoweryConnection(DatabaseConnectionProperties databaseConnectionProperties)
         {
             Connector = databaseConnectionProperties;
